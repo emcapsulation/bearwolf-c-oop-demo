@@ -1,0 +1,39 @@
+#include "townsperson.h"
+#include "../player_protected.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+
+
+/**
+ * vTable Methods
+ */
+void Townsperson_show_summary(Player* player)
+{
+    Default_show_summary(player);
+    printf("\nYou have no special ability. Go back to sleep.\n");
+}
+
+static struct Townsperson_vTable {
+    Player_vTable super;
+} townsperson_vTable = {
+    .super = {
+        .show_summary = Townsperson_show_summary,
+        .output_properties = Default_output_properties,
+        .special_ability = NULL,
+        .delete = Default_dtor
+    }
+};
+
+
+/**
+ * Public
+ */
+Townsperson* Townsperson_ctor(const int player_id) {
+    Townsperson* townsperson = malloc(sizeof(Townsperson));
+    if (!townsperson) exit(1);
+
+    Player_init(&townsperson->super, (Player_vTable*)&townsperson_vTable, player_id, "TOWNSPERSON");
+
+    return townsperson;
+}

@@ -1,0 +1,67 @@
+#include "bear.h"
+#include "../player_protected.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+/**
+ * vTable Methods
+ */
+void Bear_show_summary(Player* player)
+{
+    Default_show_summary(player);
+    printf("\nYou can select one player to bite them.\n");
+}
+
+void Bear_output_properties(Player* self, Player* player)
+{
+    if (!Player_is_alive(player))
+        return;
+
+    Default_output_properties(self, player);
+    if (strcmp(player->role, "BEAR") == 0)
+        printf("[bear]  ");
+    else if (player->protected->is_bitten)
+        printf("[bitten]  ");
+}
+
+int Bear_special_ability(Player* self, Player* target, Game_context *context)
+{
+    if (strcmp(target->role, "BEAR") == 0)
+    {
+        printf("You cannot bite another bear.");
+        return 0;
+    }
+
+    printf("Player %d has been bitten.\n", target->player_id);
+    target->protected->is_bitten = 1;
+    context->player_bitten_ids[context->player_bitten_ids[0] == -1 ? 0 : 1] = target->player_id;
+    
+    return 1;
+}
+
+static struct Bear_vTable {
+    Player_vTable super;
+} bear_vTable = {
+    .super = {
+        .show_summary = Bear_show_summary,
+        .output_properties = Bear_output_properties,
+        .special_ability = Bear_special_ability,
+        .delete = Default_dtor
+    }
+};
+
+
+/**
+ * Public
+ */
+Bear* Bear_ctor(const int player_id) {
+    Bear* bear = malloc(sizeof(Bear));
+    if (!bear) exit(1);
+
+    Player_init(&bear->super, (Player_vTable*)&bear_vTable, player_id, "BEAR");
+
+    return bear;
+}

@@ -1,0 +1,12 @@
+#ifndef CLAIRVOYANT_H
+#define CLAIRVOYANT_H
+
+#include "../player_protected.h"
+
+typedef struct Clairvoyant {
+	Player super;
+} Clairvoyant;
+
+Clairvoyant* Clairvoyant_ctor(const int player_id);
+
+#endif

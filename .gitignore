@@ -1,0 +1,33 @@
+# Compiler output
+*.o
+*.obj
+*.ko
+*.mod.c
+
+# Build results and executables
+*.exe
+*.out
+*.app
+*.dll
+*.lib
+
+# Debugging and temporary files
+*.pdb
+*.ilk
+*.dSYM/
+*.cachefile
+*.swp
+*~
+
+# Directories to ignore
+[Dd]ebug/
+[Rr]elease/
+[Bb]in/
+[Oo]bj/
+build/
+.vs/
+.vscode/
+
+# OS-specific files
+.DS_Store
+Thumbs.db

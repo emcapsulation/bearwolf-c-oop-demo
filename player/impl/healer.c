@@ -1,0 +1,79 @@
+#include "healer.h"
+#include "../player_protected.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+
+
+/**
+ * Private
+ */
+typedef struct Healer_private {
+    int last_healed;
+} Healer_private;
+
+Healer_private* Healer_private_ctor() 
+{
+    Healer_private* private = malloc(sizeof(Healer_private));
+    if (!private) exit(1);
+
+    private->last_healed = -1;
+    return private;
+}
+
+
+/**
+ * vTable Methods
+ */
+void Healer_show_summary(Player* self)
+{
+    Default_show_summary(self);
+    printf("\nYou can select one player to protect them from the bears.\n");
+}
+
+int Healer_special_ability(Player* self, Player* target, Game_context *context)
+{
+    if (target->player_id == ((Healer*)self)->private->last_healed)
+    {
+        printf("You cannot heal the same player two nights in a row.\n");
+        return 0;
+    }
+
+    printf("Player %d is protected for the night.\n", target->player_id);
+    ((Healer*)self)->private->last_healed = target->player_id;
+    context->player_healed_id = target->player_id;
+
+    return 1;
+}
+
+void Healer_dtor(Player* self)
+{
+    Healer* healer = (Healer*)self;
+    free(healer->private);
+    Default_dtor(&healer->super);
+}
+
+static struct Healer_vTable {
+    Player_vTable super;
+} healer_vTable = {
+    .super = {
+        .show_summary = Healer_show_summary,
+        .output_properties = Default_output_properties,
+        .special_ability = Healer_special_ability,
+        .delete = Healer_dtor
+    }
+};
+
+
+/**
+ * Public
+ */
+Healer* Healer_ctor(const int player_type_id) {
+    Healer* healer = malloc(sizeof(Healer));
+    if (!healer) exit(1);
+
+    healer->private = Healer_private_ctor();
+    Player_init(&healer->super, (Player_vTable*)&healer_vTable, player_type_id, "HEALER");
+
+    return healer;
+}

@@ -1,0 +1,80 @@
+#include "activist.h"
+#include "../player_protected.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+
+
+/**
+ * Private
+ */
+typedef struct Activist_private {
+    int last_banned;
+} Activist_private;
+
+Activist_private* Activist_private_ctor()
+{
+    Activist_private* private = malloc(sizeof(Activist_private));
+    if (!private) exit(1);
+
+    private->last_banned = -1;
+    return private;
+}
+
+
+/**
+ * vTable Methods
+ */
+void Activist_show_properties(Player* self)
+{
+    Default_show_summary(self);
+    printf("\nYou can select one player to stop them voting in the day.\n");
+}
+
+int Activist_special_ability(Player* self, Player* target, Game_context *context)
+{
+    if (((Activist*)self)->private->last_banned == target->player_id)
+    {
+        printf("You cannot stop the same person voting two nights in a row.\n");
+        return 0;
+    }    
+
+    printf("Player %d cannot vote tomorrow.\n", target->player_id);
+    target->protected->can_vote = 0;
+    ((Activist*)self)->private->last_banned = target->player_id;
+    context->player_banned_id = target->player_id;
+
+    return 1;
+}
+
+void Activist_dtor(Player* self)
+{
+    Activist* activist = (Activist*)self;
+    free(activist->private);
+    Default_dtor(&activist->super);
+}
+
+static struct Activist_vTable {
+    Player_vTable super;
+} activist_vTable = {
+    .super = {
+        .show_summary = Activist_show_properties,
+        .output_properties = Default_output_properties,
+        .special_ability = Activist_special_ability,
+        .delete = Activist_dtor
+    }
+};
+
+
+/**
+ * Public
+ */
+Activist* Activist_ctor(const int player_id) {
+    Activist* activist = malloc(sizeof(Activist));
+    if (!activist) exit(1);
+
+    activist->private = Activist_private_ctor();
+    Player_init(&activist->super, (Player_vTable*)&activist_vTable, player_id, "ACTIVIST");
+
+    return activist;
+}
