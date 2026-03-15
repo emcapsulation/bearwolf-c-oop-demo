@@ -16,19 +16,15 @@ static void Clairvoyant_show_summary(Player* player)
 
 static Event Clairvoyant_special_ability(Player* self, Player* target)
 {
-    printf("You see Player %d's role: %s.\n", target->player_id, target->role);
+    printf("You see Player %d's role: %s.\n", target->player_id, Util_role_to_string(target->role));
     return (Event){ .player_id = target->player_id, .action = SEE };
 }
 
-static struct Clairvoyant_vTable {
-    Player_vTable super;
-} clairvoyant_vTable = {
-    .super = {
-        .show_summary = Clairvoyant_show_summary,
-        .output_properties = Default_output_properties,
-        .special_ability = Clairvoyant_special_ability,
-        .delete = Default_dtor
-    }
+static const Player_vTable clairvoyant_vTable = {
+    .show_summary = Clairvoyant_show_summary,
+    .output_properties = Default_output_properties,
+    .special_ability = Clairvoyant_special_ability,
+    .delete = Default_dtor
 };
 
 
@@ -37,9 +33,9 @@ static struct Clairvoyant_vTable {
 */
 Clairvoyant* Clairvoyant_ctor(const int player_id) {
     Clairvoyant* clairvoyant = malloc(sizeof(Clairvoyant));
-    if (!clairvoyant) exit(1);
+    if (!clairvoyant) exit(EXIT_FAILURE);
 
-    Player_init(&clairvoyant->super, (Player_vTable*)&clairvoyant_vTable, player_id, "CLAIRVOYANT");
+    Player_init(&clairvoyant->super, &clairvoyant_vTable, player_id, CLAIRVOYANT);
 
     return clairvoyant;
 }

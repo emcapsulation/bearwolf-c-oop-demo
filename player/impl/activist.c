@@ -15,7 +15,7 @@ typedef struct Activist_private {
 static Activist_private* Activist_private_ctor()
 {
     Activist_private* private = malloc(sizeof(Activist_private));
-    if (!private) exit(1);
+    if (!private) exit(EXIT_FAILURE);
 
     private->last_banned = -1;
     return private;
@@ -33,11 +33,16 @@ static void Activist_show_properties(Player* self)
 
 static Event Activist_special_ability(Player* self, Player* target)
 {
-    if (((Activist*)self)->private->last_banned == target->player_id)
+    if (!Player_is_alive(target))
     {
-        printf("You cannot stop the same person voting two nights in a row.\n");
+        printf("You cannot ban Player %d because they have died.", target->player_id);
+        return (Event) { .player_id = -1, .action = NO_ACTION };
+    }
+    else if (((Activist*)self)->private->last_banned == target->player_id)
+    {
+        printf("You cannot stop the same person voting two nights in a row.");
         return (Event){ .player_id = -1, .action = NO_ACTION };
-    }    
+    }
 
     printf("Player %d cannot vote tomorrow.\n", target->player_id);
     target->protected->can_vote = 0;
@@ -53,15 +58,11 @@ static void Activist_dtor(Player* self)
     Default_dtor(&activist->super);
 }
 
-static struct Activist_vTable {
-    Player_vTable super;
-} activist_vTable = {
-    .super = {
-        .show_summary = Activist_show_properties,
-        .output_properties = Default_output_properties,
-        .special_ability = Activist_special_ability,
-        .delete = Activist_dtor
-    }
+static const Player_vTable activist_vTable = {    
+    .show_summary = Activist_show_properties,
+    .output_properties = Default_output_properties,
+    .special_ability = Activist_special_ability,
+    .delete = Activist_dtor
 };
 
 
@@ -70,10 +71,10 @@ static struct Activist_vTable {
 */
 Activist* Activist_ctor(const int player_id) {
     Activist* activist = malloc(sizeof(Activist));
-    if (!activist) exit(1);
+    if (!activist) exit(EXIT_FAILURE);
 
     activist->private = Activist_private_ctor();
-    Player_init(&activist->super, (Player_vTable*)&activist_vTable, player_id, "ACTIVIST");
+    Player_init(&activist->super, &activist_vTable, player_id, ACTIVIST);
 
     return activist;
 }

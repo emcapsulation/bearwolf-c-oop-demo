@@ -18,7 +18,7 @@
 static Player_protected* Player_protected_ctor() 
 {
     Player_protected* protected = malloc(sizeof(Player_protected));
-    if (!protected) exit(1);  
+    if (!protected) exit(EXIT_FAILURE);  
 
     protected->is_alive = 1;
 
@@ -29,11 +29,11 @@ static Player_protected* Player_protected_ctor()
 /*
 * Protected
 */
-void Player_init(Player* self, Player_vTable* vTable, const int player_id, const Role role)
+void Player_init(Player* self, const Player_vTable* vTable, const int player_id, const Role role)
 {
     self->vTable = vTable;
     self->player_id = player_id;
-    strncpy(self->role, role, sizeof(self->role)-1);
+    self->role = role;
     self->protected = Player_protected_ctor();
     Player_reset(self);
 }
@@ -44,7 +44,7 @@ void Player_init(Player* self, Player_vTable* vTable, const int player_id, const
 */
 void Default_show_summary(Player* self)
 {
-    printf("\nRole: %s", self->role);
+    printf("\nRole: %s", Util_role_to_string(self->role));
 }
 
 void Default_output_properties(Player* self, Player* player)
@@ -75,15 +75,15 @@ void Default_dtor(Player* self)
 */
 Player *Player_factory(const int player_id, const Role role)
 {
-    if (strcmp(role, "BEAR") == 0)
+    if (role == BEAR)
         return (Player *)Bear_ctor(player_id);
-    else if (strcmp(role, "ACTIVIST") == 0)
+    else if (role == ACTIVIST)
         return (Player*)Activist_ctor(player_id);
-    else if (strcmp(role, "CLAIRVOYANT") == 0)
+    else if (role == CLAIRVOYANT)
         return (Player*)Clairvoyant_ctor(player_id);
-    else if (strcmp(role, "HEALER") == 0)
+    else if (role == HEALER)
         return (Player*)Healer_ctor(player_id);
-    else if (strcmp(role, "TOWNSPERSON") == 0)
+    else if (role == TOWNSPERSON)
         return (Player*)Townsperson_ctor(player_id);
     else
         printf("\nInvalid role.\n");

@@ -31,13 +31,6 @@ int Util_get_valid_int_input(const int min_input, const int max_input, const cha
 }
 
 
-void Util_swap_roles(Role s1, Role s2) {
-	Role tmp;
-	memcpy(tmp, s1, sizeof(Role));
-	memcpy(s1, s2, sizeof(Role));
-	memcpy(s2, tmp, sizeof(Role));
-}
-
 /*
 * Fisher-Yates Shuffle Algorithm
 * Given an array of roles, it generates a random permuation.
@@ -47,6 +40,21 @@ void Util_shuffle_roles(Role* roles, const int num_players)
 	for (int i = num_players - 1; i > 0; i--)
 	{
 		int j = rand() % (i + 1);
-		Util_swap_roles(roles[i], roles[j]);
+		Role tmp = roles[i];
+		roles[i] = roles[j];
+		roles[j] = tmp;
 	}
+}
+
+static const char *ROLE_NAMES[ROLE_COUNT] = {
+	"BEAR",
+	"ACTIVIST",
+	"CLAIRVOYANT",
+	"HEALER",
+	"TOWNSPERSON"
+};
+
+const char* Util_role_to_string(Role role)
+{
+	return ROLE_NAMES[role];
 }

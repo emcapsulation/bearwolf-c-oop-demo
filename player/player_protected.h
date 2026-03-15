@@ -10,7 +10,7 @@ struct Player_protected {
 	int can_vote;
 };
 
-void Player_init(Player* self, Player_vTable* vTable, const int player_id, const Role role);
+void Player_init(Player* self, const Player_vTable* vTable, const int player_id, const Role role);
 
 
 /*
