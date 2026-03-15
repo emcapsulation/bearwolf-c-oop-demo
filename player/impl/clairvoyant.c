@@ -5,25 +5,21 @@
 #include <stdlib.h>
 
 
-/**
- * vTable Methods
- */
-void Clairvoyant_show_summary(Player* player)
+/*
+* vTable Methods
+*/
+static void Clairvoyant_show_summary(Player* player)
 {
     Default_show_summary(player);
     printf("\nYou can select one player to see their role.\n");
 }
 
-int Clairvoyant_special_ability(Player* self, Player* target, Game_context *context)
+static Event Clairvoyant_special_ability(Player* self, Player* target)
 {
     printf("You see Player %d's role: %s.\n", target->player_id, target->role);
-    return 1;
+    return (Event){ .player_id = target->player_id, .action = SEE };
 }
 
-
-/**
- * Private
- */
 static struct Clairvoyant_vTable {
     Player_vTable super;
 } clairvoyant_vTable = {
@@ -36,9 +32,9 @@ static struct Clairvoyant_vTable {
 };
 
 
-/**
- * Public
- */
+/*
+* Public
+*/
 Clairvoyant* Clairvoyant_ctor(const int player_id) {
     Clairvoyant* clairvoyant = malloc(sizeof(Clairvoyant));
     if (!clairvoyant) exit(1);

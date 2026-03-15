@@ -12,10 +12,10 @@
 #include <string.h>
 
 
-/**
- * Private
- */
-Player_protected* Player_protected_ctor() 
+/*
+* Private
+*/
+static Player_protected* Player_protected_ctor() 
 {
     Player_protected* protected = malloc(sizeof(Player_protected));
     if (!protected) exit(1);  
@@ -26,9 +26,9 @@ Player_protected* Player_protected_ctor()
 }
 
 
-/**
- * Protected
- */
+/*
+* Protected
+*/
 void Player_init(Player* self, Player_vTable* vTable, const int player_id, const Role role)
 {
     self->vTable = vTable;
@@ -39,9 +39,9 @@ void Player_init(Player* self, Player_vTable* vTable, const int player_id, const
 }
 
 
-/**
- * Default vTable Methods
- */
+/*
+* Default vTable Methods
+*/
 void Default_show_summary(Player* self)
 {
     printf("\nRole: %s", self->role);
@@ -58,9 +58,9 @@ void Default_output_properties(Player* self, Player* player)
         printf("[you]  ");
 }
 
-int Default_special_ability(Player* self, Player* target, Game_context *context)
+Event Default_special_ability(Player* self, Player* target)
 {
-    return 1;
+    return (Event){ .player_id = -1, .action = NO_ACTION };
 }
 
 void Default_dtor(Player* self)
@@ -70,9 +70,9 @@ void Default_dtor(Player* self)
 }
 
 
-/**
- * Public
- */
+/*
+* Public
+*/
 Player *Player_factory(const int player_id, const Role role)
 {
     if (strcmp(role, "BEAR") == 0)
@@ -112,9 +112,9 @@ int Player_can_vote(const Player* player)
 }
 
 
-/**
- * vTable Methods
- */
+/*
+* vTable Methods
+*/
 void Player_show_summary(Player* self)
 {
     self->vTable->show_summary(self);
@@ -125,9 +125,9 @@ void Player_output_properties(Player* self, Player* player)
     self->vTable->output_properties(self, player);
 }
 
-int Player_special_ability(Player* self, Player* target, Game_context *context)
+Event Player_special_ability(Player* self, Player* target)
 {
-    return self->vTable->special_ability(self, target, context);
+    return self->vTable->special_ability(self, target);
 }
 
 void delete(Player* self)

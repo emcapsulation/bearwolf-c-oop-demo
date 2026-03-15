@@ -14,7 +14,7 @@ int main() {
 		"techniques in C.\n");
 
 	int num_players = Util_get_valid_int_input(
-		5, 20, "\nEnter the number of players [5, 20]: ");
+		6, 20, "\nEnter the number of players [6, 20]: ");
 	
 	Game* game = Game_ctor(num_players);
 	Game_loop(game);

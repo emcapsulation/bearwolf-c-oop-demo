@@ -7,69 +7,88 @@
 #include <string.h>
 
 
-/**
- * Private
- */
-typedef struct Game_internals
+/*
+* Private
+*/
+typedef struct Game
 {
 	int num_players;
-	int num_bears;
-	int num_townspeople;
+	int num_bears_left;
+	int num_townspeople_left;
 	int is_night;
-	Player** players;
-} Game_internals;
+
+	int player_bitten_ids[NUM_BEARS];
+	int player_healed_id;
+	int player_banned_id;	
+	Player** players;	
+} Game;
 
 
-int Game_get_winner(const Game *self) 
+static int Game_get_winner(const Game *self) 
 {
-	if (self->internals->num_bears >= self->internals->num_townspeople)
+	if (self->num_bears_left >= self->num_townspeople_left)
 		return 0;
 	
-	if (self->internals->num_bears == 0)
+	if (self->num_bears_left == 0)
 		return 1;
 
 	return -1;
 }
 
 
-void Game_player_select_special(Game* self, Player *cur_player)
+static void Game_perform_event(Game* self, Event event)
 {
-	int input;
-	do
-	{
-		input = Util_get_valid_int_input(
-			1, self->internals->num_players, 
-			"\n\nEnter the target Player ID: ");
-
-	} while (!(Player_special_ability(cur_player, 
-		self->internals->players[input-1], self->context)));
+	if (event.action == BITE)
+		self->player_bitten_ids[self->player_bitten_ids[0] == -1 ? 0 : 1] = event.player_id;
+	else if (event.action == BAN_VOTE)
+		self->player_banned_id = event.player_id;
+	else if (event.action == HEAL)
+		self->player_healed_id = event.player_id;
 }
 
 
-void Game_display_players(Game *self, Player *cur_player)
+static void Game_player_event_listener(Game* self, Player *cur_player)
+{
+	int input;
+	Event event;
+	do
+	{
+		input = Util_get_valid_int_input(
+			1, self->num_players, 
+			"\n\nEnter the target Player ID: ");
+
+		event = Player_special_ability(cur_player, self->players[input - 1]);
+
+	} while (event.player_id == -1);
+
+	Game_perform_event(self, event);
+}
+
+
+static void Game_display_players(Game *self, Player *cur_player)
 {
 	if (strcmp(cur_player->role, "TOWNSPERSON") == 0)
 		return;
 
 	printf("\nPLAYERS:\n");
-	for (int pid = 0; pid < self->internals->num_players; pid++)
+	for (int pid = 0; pid < self->num_players; pid++)
 		Player_output_properties(
 			cur_player,
-			self->internals->players[pid]
+			self->players[pid]
 		);
 
-	Game_player_select_special(self, cur_player);
+	Game_player_event_listener(self, cur_player);
 }
 
 
-void Game_do_night_round(Game* self)
+static void Game_do_night_round(Game* self)
 {
 	printf("\n\n******** NIGHT ********");
 	printf("\nIt is night time.");
 	
-	for (int pid = 0; pid < self->internals->num_players; pid++)
+	for (int pid = 0; pid < self->num_players; pid++)
 	{
-		Player* cur_player = self->internals->players[pid];
+		Player* cur_player = self->players[pid];
 
 		if (!Player_is_alive(cur_player))
 			continue;		
@@ -83,25 +102,25 @@ void Game_do_night_round(Game* self)
 }
 
 
-void Game_eliminate_player(Game* self, Player* eliminated)
+static void Game_eliminate_player(Game* self, Player* eliminated)
 {
 	if (strcmp(eliminated->role, "BEAR") == 0)
-		self->internals->num_bears--;
+		self->num_bears_left--;
 	else
-		self->internals->num_townspeople--;
+		self->num_townspeople_left--;
 
 	Player_eliminate(eliminated);
 }
 
 
-void Game_reveal_night_results(Game* self)
+static void Game_reveal_night_results(Game* self)
 {
 	printf("\n\n******** DAY ********\n");
 	printf("It is daytime.\n");
 
-	int bitten_index = self->internals->num_bears == 2 ? rand() % NUM_BEARS : 0;
-	int bitten_id = self->context->player_bitten_ids[bitten_index];
-	if (bitten_id == self->context->player_healed_id)
+	int bitten_index = self->num_bears_left == 2 ? rand() % NUM_BEARS : 0;
+	int bitten_id = self->player_bitten_ids[bitten_index];
+	if (bitten_id == self->player_healed_id)
 	{
 		printf("\nNo one died last night.\n");
 	}
@@ -109,7 +128,7 @@ void Game_reveal_night_results(Game* self)
 	{
 		printf("\nPlayer %d died last night.\n", bitten_id);
 
-		Player* bitten_player = self->internals->players[bitten_id-1];
+		Player* bitten_player = self->players[bitten_id-1];
 		printf("Player %d was a %s.\n", bitten_player->player_id, bitten_player->role);
 
 		Game_eliminate_player(self, bitten_player);
@@ -120,26 +139,26 @@ void Game_reveal_night_results(Game* self)
 }
 
 
-void Game_reset_context(Game_context* context)
+static void Game_reset_context(Game* self)
 {
-	context->player_bitten_ids[0] = -1;
-	context->player_bitten_ids[1] = -1;
-	context->player_banned_id = -1;
-	context->player_healed_id = -1;
+	for (int i = 0; i < NUM_BEARS; i++)
+		self->player_bitten_ids[i] = -1;
+	self->player_banned_id = -1;
+	self->player_healed_id = -1;
 }
 
 
-void Game_reset(Game* self)
+static void Game_reset(Game* self)
 {
-	Game_reset_context(self->context);
-	for (int i = 0; i < self->internals->num_players; i++)
+	Game_reset_context(self);
+	for (int i = 0; i < self->num_players; i++)
 	{
-		Player_reset(self->internals->players[i]);
+		Player_reset(self->players[i]);
 	}
 }
 
 
-int Game_show_vote_prompt(Game *self, Player* cur_player, int *votes)
+static int Game_show_vote_prompt(Game *self, Player* cur_player, int *votes)
 {
 	if (!Player_is_alive(cur_player))
 		return 0;
@@ -153,8 +172,8 @@ int Game_show_vote_prompt(Game *self, Player* cur_player, int *votes)
 		return 0;
 	}
 
-	for (int i = 0; i < self->internals->num_players; i++)
-		if (Player_is_alive(self->internals->players[i]))
+	for (int i = 0; i < self->num_players; i++)
+		if (Player_is_alive(self->players[i]))
 			printf("Player %d [%d]  ", i + 1, votes[i]);
 	printf("\n");
 
@@ -162,22 +181,22 @@ int Game_show_vote_prompt(Game *self, Player* cur_player, int *votes)
 }
 
 
-void Game_do_vote_round(Game* self)
+static void Game_do_vote_round(Game* self)
 {
-	int* votes = calloc(self->internals->num_players, sizeof(int));
+	int* votes = calloc(self->num_players, sizeof(int));
 	int max_votes[2] = { -1, -1 };
 
 	printf("\n\n******** VOTING ********\n");
 	printf("Time to vote out who you think is the bear.\n");
 
-	for (int pid = 0; pid < self->internals->num_players; pid++)
+	for (int pid = 0; pid < self->num_players; pid++)
 	{
-		Player* cur_player = self->internals->players[pid];
+		Player* cur_player = self->players[pid];
 		if (!Game_show_vote_prompt(self, cur_player, votes))
 			continue;		
 
 		int input = Util_get_valid_int_input(
-			1, self->internals->num_players, 
+			1, self->num_players, 
 			"\nEnter the Player ID to vote for them: "
 		)-1;
 		votes[input]++;
@@ -189,7 +208,7 @@ void Game_do_vote_round(Game* self)
 		}
 	}
 
-	Player* voted_player = self->internals->players[max_votes[1]];
+	Player* voted_player = self->players[max_votes[1]];
 
 	printf("\nPlayer %d got the most votes and is out.\n", voted_player->player_id);
 	printf("Role: %s\n", voted_player->role);
@@ -201,8 +220,7 @@ void Game_do_vote_round(Game* self)
 }
 
 
-// CONSTRUCTOR LOGIC
-Player** p_create_player_list(Player** players, const int num_players)
+static Player** Game_create_player_list(Player** players, const int num_players)
 {
 	char* role_list[5] = {"BEAR", "BEAR", "ACTIVIST", "CLAIRVOYANT", "HEALER"};
 	Role* all_roles = malloc(sizeof(Role) * num_players);
@@ -225,53 +243,31 @@ Player** p_create_player_list(Player** players, const int num_players)
 }
 
 
-Player** Game_init_game_players(const int num_players)
+static Player** Game_init_game_players(const int num_players)
 {
 	Player** players = malloc(num_players * sizeof(Player*));
 	if (!players) exit(1);
 
-	players = p_create_player_list(players, num_players);
+	players = Game_create_player_list(players, num_players);
 
 	return players;
 }
 
 
-Game_context* Game_context_ctor()
-{
-	Game_context* context = malloc(sizeof(Game_context));
-	if (!context) exit(1);
-
-	Game_reset_context(context);
-
-	return context;
-}
-
-
-Game_internals* Game_internals_ctor(const int num_players)
-{
-	Game_internals* internals = malloc(sizeof(Game_internals));
-	if (!internals) exit(1);
-
-	internals->num_players = num_players;
-	internals->is_night = 1;
-	internals->num_bears = NUM_BEARS;
-	internals->num_townspeople = num_players - NUM_BEARS;
-	internals->players = Game_init_game_players(num_players);
-
-	return internals;
-}
-
-
-/**
- * Public
- */
+/*
+* Public
+*/
 Game* Game_ctor(const int num_players)
 {
 	Game* game = malloc(sizeof(Game));
-	if (!game) exit(1);
+	if (!game) exit(1);	
 
-	game->context = Game_context_ctor();
-	game->internals = Game_internals_ctor(num_players);
+	game->num_players = num_players;
+	game->is_night = 1;
+	game->num_bears_left = NUM_BEARS;
+	game->num_townspeople_left = num_players - NUM_BEARS;
+	Game_reset_context(game);
+	game->players = Game_init_game_players(num_players);	
 
 	return game;
 }
@@ -281,7 +277,7 @@ void Game_loop(Game* self)
 {
 	while (Game_get_winner(self) == -1) 
 	{
-		if (self->internals->is_night)
+		if (self->is_night)
 		{
 			Game_do_night_round(self);
 			Game_reveal_night_results(self);
@@ -291,7 +287,7 @@ void Game_loop(Game* self)
 			Game_do_vote_round(self);
 		}
 
-		self->internals->is_night = !self->internals->is_night;
+		self->is_night = !self->is_night;
 	}
 
 	printf("\n\n%s WIN\n\n", Game_get_winner(self) == 0 ? "BEARS" : "TOWNSPEOPLE");
@@ -300,12 +296,10 @@ void Game_loop(Game* self)
 
 void Game_dtor(Game* self) 
 {
-	for (int i = 0; i < self->internals->num_players; i++)
+	for (int i = 0; i < self->num_players; i++)
 	{
-		delete(self->internals->players[i]);
+		delete(self->players[i]);
 	}
-	free(self->internals->players);
-	free(self->internals);
-	free(self->context);
+	free(self->players);
 	free(self);
 }

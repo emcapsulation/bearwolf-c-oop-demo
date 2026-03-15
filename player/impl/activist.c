@@ -5,14 +5,14 @@
 #include <stdlib.h>
 
 
-/**
- * Private
- */
+/*
+* Private
+*/
 typedef struct Activist_private {
     int last_banned;
 } Activist_private;
 
-Activist_private* Activist_private_ctor()
+static Activist_private* Activist_private_ctor()
 {
     Activist_private* private = malloc(sizeof(Activist_private));
     if (!private) exit(1);
@@ -22,32 +22,31 @@ Activist_private* Activist_private_ctor()
 }
 
 
-/**
- * vTable Methods
- */
-void Activist_show_properties(Player* self)
+/*
+* vTable Methods
+*/
+static void Activist_show_properties(Player* self)
 {
     Default_show_summary(self);
     printf("\nYou can select one player to stop them voting in the day.\n");
 }
 
-int Activist_special_ability(Player* self, Player* target, Game_context *context)
+static Event Activist_special_ability(Player* self, Player* target)
 {
     if (((Activist*)self)->private->last_banned == target->player_id)
     {
         printf("You cannot stop the same person voting two nights in a row.\n");
-        return 0;
+        return (Event){ .player_id = -1, .action = NO_ACTION };
     }    
 
     printf("Player %d cannot vote tomorrow.\n", target->player_id);
     target->protected->can_vote = 0;
     ((Activist*)self)->private->last_banned = target->player_id;
-    context->player_banned_id = target->player_id;
 
-    return 1;
+    return (Event){ .player_id = target->player_id, .action = BAN_VOTE };
 }
 
-void Activist_dtor(Player* self)
+static void Activist_dtor(Player* self)
 {
     Activist* activist = (Activist*)self;
     free(activist->private);
@@ -66,9 +65,9 @@ static struct Activist_vTable {
 };
 
 
-/**
- * Public
- */
+/*
+* Public
+*/
 Activist* Activist_ctor(const int player_id) {
     Activist* activist = malloc(sizeof(Activist));
     if (!activist) exit(1);

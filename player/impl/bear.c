@@ -6,16 +6,16 @@
 #include <string.h>
 
 
-/**
- * vTable Methods
- */
-void Bear_show_summary(Player* player)
+/*
+* vTable Methods
+*/
+static void Bear_show_summary(Player* player)
 {
     Default_show_summary(player);
     printf("\nYou can select one player to bite them.\n");
 }
 
-void Bear_output_properties(Player* self, Player* player)
+static void Bear_output_properties(Player* self, Player* player)
 {
     if (!Player_is_alive(player))
         return;
@@ -27,19 +27,18 @@ void Bear_output_properties(Player* self, Player* player)
         printf("[bitten]  ");
 }
 
-int Bear_special_ability(Player* self, Player* target, Game_context *context)
+static Event Bear_special_ability(Player* self, Player* target)
 {
     if (strcmp(target->role, "BEAR") == 0)
     {
         printf("You cannot bite another bear.");
-        return 0;
+        return (Event){ .player_id = -1, .action = NO_ACTION };
     }
 
     printf("Player %d has been bitten.\n", target->player_id);
     target->protected->is_bitten = 1;
-    context->player_bitten_ids[context->player_bitten_ids[0] == -1 ? 0 : 1] = target->player_id;
     
-    return 1;
+    return (Event){ .player_id = target->player_id, .action = BITE };
 }
 
 static struct Bear_vTable {
@@ -54,9 +53,9 @@ static struct Bear_vTable {
 };
 
 
-/**
- * Public
- */
+/*
+* Public
+*/
 Bear* Bear_ctor(const int player_id) {
     Bear* bear = malloc(sizeof(Bear));
     if (!bear) exit(1);

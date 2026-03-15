@@ -22,7 +22,7 @@ typedef struct Player_vTable
 {
 	void (*show_summary)(Player* self);
 	void (*output_properties)(Player *self, Player* player);
-	int (*special_ability)(Player* self, Player* target, Game_context *context);
+	Event (*special_ability)(Player* self, Player* target);
     void (*delete)(Player* self);
 } Player_vTable;
 
@@ -34,12 +34,12 @@ void Player_eliminate(Player* player);
 int Player_can_vote(const Player* player);
 
 
-/**
- * vTable Public Methods
- */
+/*
+* vTable Public Methods
+*/
 void Player_show_summary(Player* self);
 void Player_output_properties(Player* self, Player* player);
-int Player_special_ability(Player* self, Player *target, Game_context *context);
+Event Player_special_ability(Player* self, Player *target);
 void delete(Player* self);
 
 #endif

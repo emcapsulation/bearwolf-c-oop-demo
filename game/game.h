@@ -3,18 +3,23 @@
 
 #define NUM_BEARS 2
 
-typedef struct Game_context {
-	const int num_players;
-	int player_bitten_ids[NUM_BEARS];
-	int player_healed_id;
-	int player_banned_id;
-} Game_context;
-typedef struct Game_internals Game_internals;
+/*
+* Encapsulation: Game is an opaque pointer.
+*/
+typedef struct Game Game;
 
-typedef struct Game {
-	Game_context *context;
-	Game_internals* internals;
-} Game;
+typedef enum Action {
+	NO_ACTION,
+	BITE,
+	BAN_VOTE,
+	SEE,
+	HEAL
+} Action;
+
+typedef struct Event {
+	int player_id;
+	Action action;
+} Event;
 
 Game *Game_ctor(const int num_players);
 void Game_loop(Game* game);

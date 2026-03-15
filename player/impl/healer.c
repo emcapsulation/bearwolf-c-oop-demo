@@ -5,14 +5,14 @@
 #include <stdlib.h>
 
 
-/**
- * Private
- */
+/*
+* Private
+*/
 typedef struct Healer_private {
     int last_healed;
 } Healer_private;
 
-Healer_private* Healer_private_ctor() 
+static Healer_private* Healer_private_ctor() 
 {
     Healer_private* private = malloc(sizeof(Healer_private));
     if (!private) exit(1);
@@ -22,31 +22,30 @@ Healer_private* Healer_private_ctor()
 }
 
 
-/**
- * vTable Methods
- */
-void Healer_show_summary(Player* self)
+/*
+* vTable Methods
+*/
+static void Healer_show_summary(Player* self)
 {
     Default_show_summary(self);
     printf("\nYou can select one player to protect them from the bears.\n");
 }
 
-int Healer_special_ability(Player* self, Player* target, Game_context *context)
+static Event Healer_special_ability(Player* self, Player* target)
 {
     if (target->player_id == ((Healer*)self)->private->last_healed)
     {
         printf("You cannot heal the same player two nights in a row.\n");
-        return 0;
+        return (Event){ .player_id = -1, .action = NO_ACTION };
     }
 
     printf("Player %d is protected for the night.\n", target->player_id);
     ((Healer*)self)->private->last_healed = target->player_id;
-    context->player_healed_id = target->player_id;
 
-    return 1;
+    return (Event){ .player_id = target->player_id, .action = HEAL };
 }
 
-void Healer_dtor(Player* self)
+static void Healer_dtor(Player* self)
 {
     Healer* healer = (Healer*)self;
     free(healer->private);
@@ -65,9 +64,9 @@ static struct Healer_vTable {
 };
 
 
-/**
- * Public
- */
+/*
+* Public
+*/
 Healer* Healer_ctor(const int player_type_id) {
     Healer* healer = malloc(sizeof(Healer));
     if (!healer) exit(1);

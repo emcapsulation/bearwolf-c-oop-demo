@@ -5,10 +5,10 @@
 #include <stdlib.h>
 
 
-/**
- * vTable Methods
- */
-void Townsperson_show_summary(Player* player)
+/*
+* vTable Methods
+*/
+static void Townsperson_show_summary(Player* player)
 {
     Default_show_summary(player);
     printf("\nYou have no special ability. Go back to sleep.\n");
@@ -20,15 +20,15 @@ static struct Townsperson_vTable {
     .super = {
         .show_summary = Townsperson_show_summary,
         .output_properties = Default_output_properties,
-        .special_ability = NULL,
+        .special_ability = Default_special_ability,
         .delete = Default_dtor
     }
 };
 
 
-/**
- * Public
- */
+/*
+* Public
+*/
 Townsperson* Townsperson_ctor(const int player_id) {
     Townsperson* townsperson = malloc(sizeof(Townsperson));
     if (!townsperson) exit(1);
