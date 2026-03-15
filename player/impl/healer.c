@@ -60,6 +60,7 @@ static void Healer_dtor(Player* self)
 static const Player_vTable healer_vTable = {
     .show_summary = Healer_show_summary,
     .output_properties = Default_output_properties,
+    .gets_bitten = Default_gets_bitten,
     .special_ability = Healer_special_ability,
     .delete = Healer_dtor
 };

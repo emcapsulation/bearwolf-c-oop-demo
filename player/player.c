@@ -25,6 +25,11 @@ static Player_protected* Player_protected_ctor()
     return protected;
 }
 
+const Event DEFAULT_EVENT = {
+    .player_id = -1,
+    .action = NO_ACTION
+};
+
 
 /*
 * Protected
@@ -56,6 +61,19 @@ void Default_output_properties(Player* self, Player* player)
 
     if (self->player_id == player->player_id)
         printf("[you]  ");
+}
+
+Event Default_gets_bitten(Player* self)
+{
+    if (!self->protected->is_alive)
+    {
+        printf("PLAYER %d cannot be bitten because they have died.", self->player_id);
+        return DEFAULT_EVENT;
+    }
+
+    printf("PLAYER %d has been bitten.\n", self->player_id);
+    self->protected->is_bitten = 1;
+    return (Event) { .player_id = self->player_id, .action = BITE };
 }
 
 Event Default_special_ability(Player* self, Player* target)
@@ -111,26 +129,12 @@ int Player_can_vote(const Player* player)
     return player->protected->can_vote;
 }
 
-
-/*
-* vTable Methods
-*/
-void Player_show_summary(Player* self)
+void Player_ban_vote(Player* player)
 {
-    self->vTable->show_summary(self);
+    player->protected->can_vote = 0;
 }
 
-void Player_output_properties(Player* self, Player* player)
+int Player_is_bitten(const Player* player)
 {
-    self->vTable->output_properties(self, player);
-}
-
-Event Player_special_ability(Player* self, Player* target)
-{
-    return self->vTable->special_ability(self, target);
-}
-
-void delete(Player* self)
-{
-    self->vTable->delete(self);
+    return player->protected->is_bitten;
 }

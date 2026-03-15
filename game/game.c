@@ -27,8 +27,7 @@ typedef struct Game
 static int Game_get_winner(const Game *self) 
 {
 	if (self->num_bears_left >= self->num_townspeople_left)
-		return 0;
-	
+		return 0;	
 	if (self->num_bears_left == 0)
 		return 1;
 
@@ -45,7 +44,7 @@ static void Game_handle_event(Game* self, Event event)
 }
 
 
-static void Game_perform_player_event(Game* self, Player *cur_player)
+static void Game_perform_player_event(Game* self, Player *player)
 {
 	int input;
 	Event event;
@@ -55,29 +54,35 @@ static void Game_perform_player_event(Game* self, Player *cur_player)
 			1, self->num_players, 
 			"\n\nEnter the target Player ID: ");
 
-		event = Player_special_ability(cur_player, self->players[input - 1]);
+		event = player->vTable->special_ability(player, self->players[input - 1]);
 	} while (event.player_id == -1);
 
 	Game_handle_event(self, event);
 }
 
 
-static void Game_do_player_round(Game *self, Player *cur_player)
-{
-	Player_show_summary(cur_player);
-	if (cur_player->role == TOWNSPERSON)
-		return;
+static void Game_do_player_round(Game *self, Player *player)
+{	
+	player->vTable->show_summary(player);
 
-	printf("\nPLAYERS:\n");
-	for (int pid = 0; pid < self->num_players; pid++)
-		Player_output_properties(cur_player, self->players[pid]);
+	if (player->role != TOWNSPERSON)
+	{
+		printf("\nPLAYERS:\n");
+		for (int pid = 0; pid < self->num_players; pid++)
+			player->vTable->output_properties(player, self->players[pid]);
 
-	Game_perform_player_event(self, cur_player);
+		Game_perform_player_event(self, player);
+	}
+
+	printf("\nPress ENTER to clear the screen.\n");
+	Util_press_enter_to_continue();
+	Util_clear_screen();
 }
 
 
 static void Game_do_night_round(Game* self)
 {
+	Util_clear_screen();
 	printf("\n\n******** NIGHT ********");
 	printf("\nIt is night time.");
 	
@@ -86,9 +91,9 @@ static void Game_do_night_round(Game* self)
 		Player* cur_player = self->players[pid];
 
 		if (!Player_is_alive(cur_player))
-			continue;		
+			continue;
 
-		printf("\n\nPLAYER %d\nPress enter when ready. ", cur_player->player_id);
+		printf("\n\nPLAYER %d\nPress ENTER when ready. ", cur_player->player_id);
 		Util_press_enter_to_continue();
 		Game_do_player_round(self, cur_player);
 	}
@@ -126,9 +131,6 @@ static void Game_reveal_night_results(Game* self)
 
 		Game_eliminate_player(self, bitten_player);
 	}
-
-	printf("\nPress enter when you are ready to vote.\n");
-	Util_press_enter_to_continue();
 }
 
 
@@ -156,7 +158,7 @@ static int Game_show_vote_prompt(Game *self, Player* cur_player, int *votes)
 	if (!Player_is_alive(cur_player))
 		return 0;
 
-	printf("\nPLAYER %d\nPress enter when ready.\n", cur_player->player_id);
+	printf("\n\nPLAYER %d\nPress ENTER when ready.\n", cur_player->player_id);
 	Util_press_enter_to_continue();
 
 	if (!Player_can_vote(cur_player))
@@ -274,6 +276,9 @@ void Game_loop(Game* self)
 {
 	while (Game_get_winner(self) == -1) 
 	{
+		printf("\nPress ENTER to continue.\n");
+		Util_press_enter_to_continue();
+
 		if (self->is_night)
 		{
 			Game_do_night_round(self);
@@ -295,7 +300,8 @@ void Game_dtor(Game* self)
 {
 	for (int i = 0; i < self->num_players; i++)
 	{
-		delete(self->players[i]);
+		Player* player = self->players[i];
+		player->vTable->delete(player);
 	}
 	free(self->players);
 	free(self);

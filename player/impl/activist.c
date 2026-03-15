@@ -45,7 +45,7 @@ static Event Activist_special_ability(Player* self, Player* target)
     }
 
     printf("Player %d cannot vote tomorrow.\n", target->player_id);
-    target->protected->can_vote = 0;
+    Player_ban_vote(target);
     ((Activist*)self)->private->last_banned = target->player_id;
 
     return (Event){ .player_id = target->player_id, .action = BAN_VOTE };
@@ -61,6 +61,7 @@ static void Activist_dtor(Player* self)
 static const Player_vTable activist_vTable = {    
     .show_summary = Activist_show_properties,
     .output_properties = Default_output_properties,
+    .gets_bitten = Default_gets_bitten,
     .special_ability = Activist_special_ability,
     .delete = Activist_dtor
 };

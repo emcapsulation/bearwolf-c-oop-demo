@@ -23,6 +23,7 @@ static Event Clairvoyant_special_ability(Player* self, Player* target)
 static const Player_vTable clairvoyant_vTable = {
     .show_summary = Clairvoyant_show_summary,
     .output_properties = Default_output_properties,
+    .gets_bitten = Default_gets_bitten,
     .special_ability = Clairvoyant_special_ability,
     .delete = Default_dtor
 };

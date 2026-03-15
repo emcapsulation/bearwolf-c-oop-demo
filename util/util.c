@@ -31,6 +31,12 @@ int Util_get_valid_int_input(const int min_input, const int max_input, const cha
 }
 
 
+void Util_clear_screen()
+{
+	printf("\033[H\033[J");
+}
+
+
 /*
 * Fisher-Yates Shuffle Algorithm
 * Given an array of roles, it generates a random permuation.

@@ -23,33 +23,29 @@ static void Bear_output_properties(Player* self, Player* player)
     Default_output_properties(self, player);
     if (player->role == BEAR)
         printf("[bear]  ");
-    else if (player->protected->is_bitten)
+    else if (Player_is_bitten(player))
         printf("[bitten]  ");
+}
+
+static Event Bear_gets_bitten(Player* self)
+{
+    if (!self->protected->is_alive)
+        printf("PLAYER %d cannot be bitten because they have died.", self->player_id);
+    else
+        printf("PLAYER %d cannot be bitten because they are a bear.", self->player_id);
+    return DEFAULT_EVENT;
 }
 
 static Event Bear_special_ability(Player* self, Player* target)
 {    
-    if (!Player_is_alive(target))
-    {
-        printf("You cannot bite Player %d because they have died.", target->player_id);
-        return (Event) { .player_id = -1, .action = NO_ACTION };
-    }
-    else if (target->role == BEAR)
-    {
-        printf("You cannot bite another bear.");
-        return (Event) { .player_id = -1, .action = NO_ACTION };
-    }
-
-    printf("Player %d has been bitten.\n", target->player_id);
-    target->protected->is_bitten = 1;
-    
-    return (Event){ .player_id = target->player_id, .action = BITE };
+    return target->vTable->gets_bitten(target);
 }
 
 static const Player_vTable bear_vTable = {
     .show_summary = Bear_show_summary,
     .output_properties = Bear_output_properties,
-    .special_ability = Bear_special_ability,
+    .gets_bitten = Bear_gets_bitten,
+    .special_ability = Bear_special_ability,    
     .delete = Default_dtor
 };
 

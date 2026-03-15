@@ -17,6 +17,7 @@ static void Townsperson_show_summary(Player* player)
 static const Player_vTable townsperson_vTable = {
     .show_summary = Townsperson_show_summary,
     .output_properties = Default_output_properties,
+    .gets_bitten = Default_gets_bitten,
     .special_ability = Default_special_ability,
     .delete = Default_dtor
 };
