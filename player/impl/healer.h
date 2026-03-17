@@ -10,6 +10,7 @@ typedef struct Healer {
 	Healer_private* private;
 } Healer;
 
-Healer* Healer_ctor(const int player_type_id);
+Healer* Healer_ctor(const int player_id);
+int Healer_attempt_self_heal(Healer* self);
 
 #endif

@@ -21,6 +21,8 @@ static Player_protected* Player_protected_ctor()
     if (!protected) exit(EXIT_FAILURE);  
 
     protected->is_alive = 1;
+    protected->can_vote = 1;
+    protected->is_bitten = 0;
 
     return protected;
 }
@@ -40,7 +42,6 @@ void Player_init(Player* self, const Player_vTable* vTable, const int player_id,
     self->player_id = player_id;
     self->role = role;
     self->protected = Player_protected_ctor();
-    Player_reset(self);
 }
 
 

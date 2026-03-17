@@ -7,6 +7,6 @@ typedef struct Townsperson {
 	Player super;
 } Townsperson;
 
-Townsperson* Townsperson_ctor(const int player_type_id);
+Townsperson* Townsperson_ctor(const int player_id);
 
 #endif

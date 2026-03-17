@@ -78,3 +78,21 @@ Healer* Healer_ctor(const int player_id) {
 
     return healer;
 }
+
+int Healer_attempt_self_heal(Healer* self)
+{
+    printf("\nThe healer has a 1 in 2 chance of healing themselves!\n");
+    printf("PLAYER %d: Press ENTER to try and heal yourself.\n", self->super.player_id);
+    Util_press_enter_to_continue();
+
+    if (rand() % 2 == 0)
+    {
+        printf("SUCCESS - The healer lives.\n");
+        return 1;
+    }
+    else 
+    {
+        printf("FAILURE - The healer is eliminated.\n");
+        return 0;
+    }
+}

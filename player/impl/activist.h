@@ -11,5 +11,6 @@ typedef struct Activist {
 } Activist;
 
 Activist* Activist_ctor(const int player_type_id);
+int Activist_attempt_second_vote(Activist* self);
 
 #endif

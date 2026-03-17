@@ -1,5 +1,7 @@
 #include "game.h"
 #include "../player/player.h"
+#include "../player/impl/activist.h"
+#include "../player/impl/healer.h"
 #include "../util/util.h"
 
 #include <stdio.h>
@@ -27,11 +29,11 @@ typedef struct Game
 static int Game_get_winner(const Game *self) 
 {
 	if (self->num_bears_left >= self->num_townspeople_left)
-		return 0;	
+		return 1;	
 	if (self->num_bears_left == 0)
-		return 1;
+		return 2;
 
-	return -1;
+	return 0;
 }
 
 
@@ -44,7 +46,7 @@ static void Game_handle_event(Game* self, Event event)
 }
 
 
-static void Game_perform_player_event(Game* self, Player *player)
+static void Game_do_player_special_ability(Game* self, Player *player)
 {
 	int input;
 	Event event;
@@ -71,7 +73,7 @@ static void Game_do_player_round(Game *self, Player *player)
 		for (int pid = 0; pid < self->num_players; pid++)
 			player->vTable->output_properties(player, self->players[pid]);
 
-		Game_perform_player_event(self, player);
+		Game_do_player_special_ability(self, player);
 	}
 
 	printf("\nPress ENTER to clear the screen.\n");
@@ -102,6 +104,9 @@ static void Game_do_night_round(Game* self)
 
 static void Game_eliminate_player(Game* self, Player* eliminated)
 {
+	if (eliminated->role == HEALER && Healer_attempt_self_heal((Healer *)eliminated))
+		return;
+
 	if (eliminated->role == BEAR)
 		self->num_bears_left--;
 	else
@@ -134,7 +139,7 @@ static void Game_reveal_night_results(Game* self)
 }
 
 
-static void Game_reset_context(Game* self)
+static void Game_init_round_properties(Game* self)
 {
 	for (int i = 0; i < NUM_BEARS; i++)
 		self->player_bitten_ids[i] = -1;
@@ -145,7 +150,7 @@ static void Game_reset_context(Game* self)
 
 static void Game_reset(Game* self)
 {
-	Game_reset_context(self);
+	Game_init_round_properties(self);
 	for (int i = 0; i < self->num_players; i++)
 	{
 		Player_reset(self->players[i]);
@@ -205,6 +210,9 @@ static void Game_do_vote_round(Game* self)
 			max_votes[0] = votes[input];
 			max_votes[1] = input;
 		}
+
+		if (cur_player->role == ACTIVIST && Activist_attempt_second_vote((Activist *)cur_player))
+			pid--;
 	}
 
 	Player* voted_player = self->players[max_votes[1]];
@@ -265,7 +273,7 @@ Game* Game_ctor(const int num_players)
 	game->is_night = 1;
 	game->num_bears_left = NUM_BEARS;
 	game->num_townspeople_left = num_players - NUM_BEARS;
-	Game_reset_context(game);
+	Game_init_round_properties(game);
 	game->players = Game_init_game_players(num_players);	
 
 	return game;
@@ -274,7 +282,7 @@ Game* Game_ctor(const int num_players)
 
 void Game_loop(Game* self) 
 {
-	while (Game_get_winner(self) == -1) 
+	while (!Game_get_winner(self)) 
 	{
 		printf("\nPress ENTER to continue.\n");
 		Util_press_enter_to_continue();
@@ -292,7 +300,7 @@ void Game_loop(Game* self)
 		self->is_night = !self->is_night;
 	}
 
-	printf("\n\n%s WIN\n\n", Game_get_winner(self) == 0 ? "BEARS" : "TOWNSPEOPLE");
+	printf("\n\n%s WIN\n\n", Game_get_winner(self) == 1 ? "BEARS" : "TOWNSPEOPLE");
 }
 
 

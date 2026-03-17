@@ -10,6 +10,7 @@
 */
 typedef struct Activist_private {
     int last_banned;
+    int voted_twice;
 } Activist_private;
 
 static Activist_private* Activist_private_ctor()
@@ -18,6 +19,7 @@ static Activist_private* Activist_private_ctor()
     if (!private) exit(EXIT_FAILURE);
 
     private->last_banned = -1;
+    private->voted_twice = 0;
     return private;
 }
 
@@ -36,12 +38,12 @@ static Event Activist_special_ability(Player* self, Player* target)
     if (!Player_is_alive(target))
     {
         printf("You cannot ban Player %d because they have died.", target->player_id);
-        return (Event) { .player_id = -1, .action = NO_ACTION };
+        return DEFAULT_EVENT;
     }
     else if (((Activist*)self)->private->last_banned == target->player_id)
     {
         printf("You cannot stop the same person voting two nights in a row.");
-        return (Event){ .player_id = -1, .action = NO_ACTION };
+        return DEFAULT_EVENT;
     }
 
     printf("Player %d cannot vote tomorrow.\n", target->player_id);
@@ -78,4 +80,29 @@ Activist* Activist_ctor(const int player_id) {
     Player_init(&activist->super, &activist_vTable, player_id, ACTIVIST);
 
     return activist;
+}
+
+int Activist_attempt_second_vote(Activist* self)
+{
+    if (self->private->voted_twice)
+    {
+        self->private->voted_twice = 0;
+        return 0;
+    }        
+
+    printf("\nThe activist has a 1 in 2 chance of getting a second vote.\n");
+    printf("PLAYER %d: Press ENTER to try and get a second vote.\n", self->super.player_id);
+    Util_press_enter_to_continue();
+
+    if (rand() % 2 == 0)
+    {
+        printf("SUCCESS - You can vote again.\n");
+        self->private->voted_twice = 1;
+        return 1;
+    }
+    else
+    {
+        printf("FAILURE - You only get one vote this round.\n");
+        return 0;
+    }
 }
