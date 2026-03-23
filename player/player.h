@@ -1,7 +1,15 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "../util/util.h"
+
+typedef enum {
+	BEAR,
+	ACTIVIST,
+	CLAIRVOYANT,
+	HEALER,
+	TOWNSPERSON,
+	ROLE_COUNT
+} Role;
 
 
 typedef struct Player_vTable Player_vTable;
@@ -43,6 +51,9 @@ void Player_eliminate(Player* player);
 int Player_can_vote(const Player* player);
 void Player_ban_vote(Player* player);
 int Player_is_bitten(const Player* player);
+
+// Not bound to an instance - static method
+const char* Player_role_to_string(Role role);
 
 
 /*

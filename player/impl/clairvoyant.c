@@ -16,7 +16,7 @@ static void Clairvoyant_show_summary(Player* player)
 
 static Event Clairvoyant_special_ability(Player* self, Player* target)
 {
-    printf("You see Player %d's role: %s.\n", target->player_id, Util_role_to_string(target->role));
+    printf("You see Player %d's role: %s.\n", target->player_id, Player_role_to_string(target->role));
     return (Event){ .player_id = target->player_id, .action = SEE };
 }
 

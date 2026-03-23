@@ -1,5 +1,6 @@
 #include "activist.h"
 #include "../player_protected.h"
+#include "../../util/util.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -132,7 +132,7 @@ static void Game_reveal_night_results(Game* self)
 		printf("\nPlayer %d died last night.\n", bitten_id);
 
 		Player* bitten_player = self->players[bitten_id-1];
-		printf("Player %d was a %s.\n", bitten_player->player_id, Util_role_to_string(bitten_player->role));
+		printf("Player %d was a %s.\n", bitten_player->player_id, Player_role_to_string(bitten_player->role));
 
 		Game_eliminate_player(self, bitten_player);
 	}
@@ -218,7 +218,7 @@ static void Game_do_vote_round(Game* self)
 	Player* voted_player = self->players[max_votes[1]];
 
 	printf("\nPlayer %d got the most votes and is out.\n", voted_player->player_id);
-	printf("Role: %s\n", Util_role_to_string(voted_player->role));
+	printf("Role: %s\n", Player_role_to_string(voted_player->role));
 
 	Game_eliminate_player(self, voted_player);
 
@@ -240,7 +240,7 @@ static Player** Game_create_player_list(Player** players, const int num_players)
 		rid++;
 	}
 
-	Util_shuffle_roles(all_roles, num_players);
+	Util_shuffle_ints((int *)all_roles, num_players);
 
 	for (int pid = 0; pid < num_players; pid++)
 		players[pid] = Player_factory(pid + 1, all_roles[pid]);

@@ -1,5 +1,6 @@
 #include "healer.h"
 #include "../player_protected.h"
+#include "../../util/util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -88,6 +89,7 @@ int Healer_attempt_self_heal(Healer* self)
     if (rand() % 2 == 0)
     {
         printf("SUCCESS - The healer lives.\n");
+        self->private->last_healed = self->super.player_id;
         return 1;
     }
     else 

@@ -20,5 +20,7 @@ int main() {
 	Game_loop(game);
 	Game_dtor(game);
 
+	Game_init_round_properties(game);
+
 	return 0;
 }

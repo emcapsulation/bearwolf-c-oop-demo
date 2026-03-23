@@ -50,7 +50,7 @@ void Player_init(Player* self, const Player_vTable* vTable, const int player_id,
 */
 void Default_show_summary(Player* self)
 {
-    printf("\nRole: %s", Util_role_to_string(self->role));
+    printf("\nRole: %s", Player_role_to_string(self->role));
 }
 
 void Default_output_properties(Player* self, Player* player)
@@ -138,4 +138,17 @@ void Player_ban_vote(Player* player)
 int Player_is_bitten(const Player* player)
 {
     return player->protected->is_bitten;
+}
+
+static const char* ROLE_NAMES[ROLE_COUNT] = {
+    "BEAR",
+    "ACTIVIST",
+    "CLAIRVOYANT",
+    "HEALER",
+    "TOWNSPERSON"
+};
+
+const char* Player_role_to_string(Role role)
+{
+    return ROLE_NAMES[role];
 }
