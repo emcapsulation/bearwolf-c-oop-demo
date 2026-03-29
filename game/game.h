@@ -9,8 +9,7 @@
 typedef struct Game Game;
 
 Game *Game_ctor(const int num_players);
-void Game_loop(Game* game);
-void Game_dtor(Game* game);
-static void Game_init_round_properties(Game* self);
+void Game_loop(Game* self);
+void Game_dtor(Game* self);
 
 #endif

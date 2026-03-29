@@ -6,6 +6,7 @@
 #include "impl/healer.h"
 #include "impl/townsperson.h"
 #include "../game/game.h"
+#include "../util/util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,7 +37,7 @@ const Event DEFAULT_EVENT = {
 /*
 * Protected
 */
-void Player_init(Player* self, const Player_vTable* vTable, const int player_id, const Role role)
+void super(Player* self, const Player_vTable* vTable, const int player_id, const Role role)
 {
     self->vTable = vTable;
     self->player_id = player_id;
@@ -48,12 +49,13 @@ void Player_init(Player* self, const Player_vTable* vTable, const int player_id,
 /*
 * Default vTable Methods
 */
-void Default_show_summary(Player* self)
+void Default_show_summary(const Player* self)
 {
-    printf("\nRole: %s", Player_role_to_string(self->role));
+    printf("\nRole: %s\n", Player_role_to_string(self->role));
+    printf("%s", ASCII_ART[self->role]);
 }
 
-void Default_output_properties(Player* self, Player* player)
+void Default_output_properties(const Player* self, const Player* player)
 {
     if (!Player_is_alive(player))
         return;
@@ -82,12 +84,6 @@ Event Default_special_ability(Player* self, Player* target)
     return (Event){ .player_id = -1, .action = NO_ACTION };
 }
 
-void Default_dtor(Player* self)
-{
-    free(self->protected);
-    free(self);
-}
-
 
 /*
 * Public
@@ -95,7 +91,7 @@ void Default_dtor(Player* self)
 Player *Player_factory(const int player_id, const Role role)
 {
     if (role == BEAR)
-        return (Player *)Bear_ctor(player_id);
+        return (Player*)Bear_ctor(player_id);
     else if (role == ACTIVIST)
         return (Player*)Activist_ctor(player_id);
     else if (role == CLAIRVOYANT)
@@ -109,35 +105,35 @@ Player *Player_factory(const int player_id, const Role role)
     return NULL;
 }
 
-void Player_reset(Player* player)
+void Player_reset(Player* self)
 {
-    player->protected->can_vote = 1;
-    player->protected->is_bitten = 0;
+    self->protected->can_vote = 1;
+    self->protected->is_bitten = 0;
 }
 
-int Player_is_alive(const Player* player)
+int Player_is_alive(const Player* self)
 {
-    return player->protected->is_alive;
+    return self->protected->is_alive;
 }
 
-void Player_eliminate(Player* player)
+void Player_eliminate(Player* self)
 {
-    player->protected->is_alive = 0;
+    self->protected->is_alive = 0;
 }
 
-int Player_can_vote(const Player* player)
+int Player_can_vote(const Player* self)
 {
-    return player->protected->can_vote;
+    return self->protected->can_vote;
 }
 
-void Player_ban_vote(Player* player)
+void Player_ban_vote(Player* self)
 {
-    player->protected->can_vote = 0;
+    self->protected->can_vote = 0;
 }
 
-int Player_is_bitten(const Player* player)
+int Player_is_bitten(const Player* self)
 {
-    return player->protected->is_bitten;
+    return self->protected->is_bitten;
 }
 
 static const char* ROLE_NAMES[ROLE_COUNT] = {

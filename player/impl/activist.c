@@ -28,7 +28,7 @@ static Activist_private* Activist_private_ctor()
 /*
 * vTable Methods
 */
-static void Activist_show_properties(Player* self)
+static void Activist_show_properties(const Player* self)
 {
     Default_show_summary(self);
     printf("\nYou can select one player to stop them voting in the day.\n");
@@ -57,8 +57,9 @@ static Event Activist_special_ability(Player* self, Player* target)
 static void Activist_dtor(Player* self)
 {
     Activist* activist = (Activist*)self;
-    free(activist->private);
-    Default_dtor(&activist->super);
+    free(activist->super.protected);
+    free(activist->private);    
+    free(activist);
 }
 
 static const Player_vTable activist_vTable = {    
@@ -77,8 +78,8 @@ Activist* Activist_ctor(const int player_id) {
     Activist* activist = malloc(sizeof(Activist));
     if (!activist) exit(EXIT_FAILURE);
 
-    activist->private = Activist_private_ctor();
-    Player_init(&activist->super, &activist_vTable, player_id, ACTIVIST);
+    super(&activist->super, &activist_vTable, player_id, ACTIVIST);
+    activist->private = Activist_private_ctor();    
 
     return activist;
 }

@@ -12,6 +12,7 @@ int main() {
 	printf("\n\n\n******** Welcome to Bear-Wolf: The C-OOP Demo ********\n");
 	printf("This minigame is designed to teach object-oriented programming\n" \
 		"techniques in C.\n");
+	printf("%s", ASCII_ART[0]);
 
 	int num_players = Util_get_valid_int_input(
 		6, 20, "\nEnter the number of players [6, 20]: ");
@@ -19,8 +20,6 @@ int main() {
 	Game* game = Game_ctor(num_players);
 	Game_loop(game);
 	Game_dtor(game);
-
-	Game_init_round_properties(game);
 
 	return 0;
 }

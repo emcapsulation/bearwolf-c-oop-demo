@@ -9,13 +9,13 @@
 /*
 * vTable Methods
 */
-static void Bear_show_summary(Player* player)
+static void Bear_show_summary(const Player* player)
 {
     Default_show_summary(player);
     printf("\nYou can select one player to bite them.\n");
 }
 
-static void Bear_output_properties(Player* self, Player* player)
+static void Bear_output_properties(const Player* self, const Player* player)
 {
     if (!Player_is_alive(player))
         return;
@@ -41,23 +41,31 @@ static Event Bear_special_ability(Player* self, Player* target)
     return target->vTable->gets_bitten(target);
 }
 
+void Bear_dtor(Player* self)
+{
+    Bear* bear = (Bear*)self;
+    free(bear->super.protected);
+    free(bear);
+}
+
 static const Player_vTable bear_vTable = {
     .show_summary = Bear_show_summary,
     .output_properties = Bear_output_properties,
     .gets_bitten = Bear_gets_bitten,
     .special_ability = Bear_special_ability,    
-    .delete = Default_dtor
+    .delete = Bear_dtor
 };
 
 
 /*
 * Public
 */
-Bear* Bear_ctor(const int player_id) {
+Bear* Bear_ctor(const int player_id) 
+{
     Bear* bear = malloc(sizeof(Bear));
     if (!bear) exit(EXIT_FAILURE);
 
-    Player_init(&bear->super, &bear_vTable, player_id, BEAR);
+    super(&bear->super, &bear_vTable, player_id, BEAR);
 
     return bear;
 }

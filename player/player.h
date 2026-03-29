@@ -45,12 +45,12 @@ extern const Event DEFAULT_EVENT;
 * Public Methods
 */
 Player* Player_factory(const int player_id, const Role role);
-void Player_reset(Player* player);
-int Player_is_alive(const Player* player);
-void Player_eliminate(Player* player);
-int Player_can_vote(const Player* player);
-void Player_ban_vote(Player* player);
-int Player_is_bitten(const Player* player);
+void Player_reset(Player* self);
+int Player_is_alive(const Player* self);
+void Player_eliminate(Player* self);
+int Player_can_vote(const Player* self);
+void Player_ban_vote(Player* self);
+int Player_is_bitten(const Player* self);
 
 // Not bound to an instance - static method
 const char* Player_role_to_string(Role role);
@@ -61,8 +61,8 @@ const char* Player_role_to_string(Role role);
 */
 typedef struct Player_vTable
 {
-	void (*show_summary)(Player* self);
-	void (*output_properties)(Player* self, Player* player);
+	void (*show_summary)(const Player* self);
+	void (*output_properties)(const Player* self, const Player* player);
 	Event(*gets_bitten)(Player* self);
 	Event(*special_ability)(Player* self, Player* target);
 	void (*delete)(Player* self);

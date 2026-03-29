@@ -26,7 +26,7 @@ static Healer_private* Healer_private_ctor()
 /*
 * vTable Methods
 */
-static void Healer_show_summary(Player* self)
+static void Healer_show_summary(const Player* self)
 {
     Default_show_summary(self);
     printf("\nYou can select one player to protect them from the bears.\n");
@@ -54,8 +54,9 @@ static Event Healer_special_ability(Player* self, Player* target)
 static void Healer_dtor(Player* self)
 {
     Healer* healer = (Healer*)self;
-    free(healer->private);
-    Default_dtor(&healer->super);
+    free(healer->super.protected);
+    free(healer->private);    
+    free(healer);
 }
 
 static const Player_vTable healer_vTable = {
@@ -70,12 +71,13 @@ static const Player_vTable healer_vTable = {
 /*
 * Public
 */
-Healer* Healer_ctor(const int player_id) {
+Healer* Healer_ctor(const int player_id) 
+{
     Healer* healer = malloc(sizeof(Healer));
     if (!healer) exit(EXIT_FAILURE);
 
-    healer->private = Healer_private_ctor();
-    Player_init(&healer->super, &healer_vTable, player_id, HEALER);
+    super(&healer->super, &healer_vTable, player_id, HEALER);
+    healer->private = Healer_private_ctor();    
 
     return healer;
 }
