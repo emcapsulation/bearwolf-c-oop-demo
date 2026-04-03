@@ -17,8 +17,6 @@ void super(Player* self, const Player_vTable* vTable, const int player_id, const
 * Default vTable Methods
 */
 void Default_show_summary(const Player* self);
-void Default_output_properties(const Player* self, const Player *player);
-Event Default_gets_bitten(Player* self);
 Event Default_special_ability(Player* self, Player* target);
 
 #endif

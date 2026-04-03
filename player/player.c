@@ -55,30 +55,6 @@ void Default_show_summary(const Player* self)
     printf("%s", ASCII_ART[self->role]);
 }
 
-void Default_output_properties(const Player* self, const Player* player)
-{
-    if (!Player_is_alive(player))
-        return;
-
-    printf("*  Player %d  ", player->player_id);
-
-    if (self->player_id == player->player_id)
-        printf("[you]  ");
-}
-
-Event Default_gets_bitten(Player* self)
-{
-    if (!self->protected->is_alive)
-    {
-        printf("PLAYER %d cannot be bitten because they have died.", self->player_id);
-        return DEFAULT_EVENT;
-    }
-
-    printf("PLAYER %d has been bitten.\n", self->player_id);
-    self->protected->is_bitten = 1;
-    return (Event) { .player_id = self->player_id, .action = BITE };
-}
-
 Event Default_special_ability(Player* self, Player* target)
 {
     return (Event){ .player_id = -1, .action = NO_ACTION };
@@ -134,6 +110,24 @@ void Player_ban_vote(Player* self)
 int Player_is_bitten(const Player* self)
 {
     return self->protected->is_bitten;
+}
+
+Event Player_gets_bitten(Player* self)
+{
+    if (!self->protected->is_alive)
+    {
+        printf("PLAYER %d cannot be bitten because they have died.", self->player_id);
+        return DEFAULT_EVENT;
+    }
+    else if (self->role == BEAR)
+    {
+        printf("PLAYER %d cannot be bitten because they are a bear.", self->player_id);
+        return DEFAULT_EVENT;
+    }
+
+    printf("PLAYER %d has been bitten.\n", self->player_id);
+    self->protected->is_bitten = 1;
+    return (Event) { .player_id = self->player_id, .action = BITE };
 }
 
 static const char* ROLE_NAMES[ROLE_COUNT] = {

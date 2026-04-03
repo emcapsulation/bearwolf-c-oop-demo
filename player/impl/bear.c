@@ -15,30 +15,9 @@ static void Bear_show_summary(const Player* player)
     printf("\nYou can select one player to bite them.\n");
 }
 
-static void Bear_output_properties(const Player* self, const Player* player)
-{
-    if (!Player_is_alive(player))
-        return;
-
-    Default_output_properties(self, player);
-    if (player->role == BEAR)
-        printf("[bear]  ");
-    else if (Player_is_bitten(player))
-        printf("[bitten]  ");
-}
-
-static Event Bear_gets_bitten(Player* self)
-{
-    if (!self->protected->is_alive)
-        printf("PLAYER %d cannot be bitten because they have died.", self->player_id);
-    else
-        printf("PLAYER %d cannot be bitten because they are a bear.", self->player_id);
-    return DEFAULT_EVENT;
-}
-
 static Event Bear_special_ability(Player* self, Player* target)
 {    
-    return target->vTable->gets_bitten(target);
+    return Player_gets_bitten(target);
 }
 
 void Bear_dtor(Player* self)
@@ -50,10 +29,8 @@ void Bear_dtor(Player* self)
 
 static const Player_vTable bear_vTable = {
     .show_summary = Bear_show_summary,
-    .output_properties = Bear_output_properties,
-    .gets_bitten = Bear_gets_bitten,
     .special_ability = Bear_special_ability,    
-    .delete = Bear_dtor
+    .destroy = Bear_dtor
 };
 
 
@@ -68,4 +45,12 @@ Bear* Bear_ctor(const int player_id)
     super(&bear->super, &bear_vTable, player_id, BEAR);
 
     return bear;
+}
+
+void Bear_output_player(const Player* output_player)
+{
+    if (output_player->role == BEAR)
+        printf("[bear]  ");
+    else if (Player_is_bitten(output_player))
+        printf("[bitten]  ");
 }

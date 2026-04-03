@@ -51,8 +51,9 @@ void Player_eliminate(Player* self);
 int Player_can_vote(const Player* self);
 void Player_ban_vote(Player* self);
 int Player_is_bitten(const Player* self);
+Event Player_gets_bitten(Player* self);
 
-// Not bound to an instance - static method
+// Does not act on a Player instance (static method)
 const char* Player_role_to_string(Role role);
 
 
@@ -62,10 +63,8 @@ const char* Player_role_to_string(Role role);
 typedef struct Player_vTable
 {
 	void (*show_summary)(const Player* self);
-	void (*output_properties)(const Player* self, const Player* player);
-	Event(*gets_bitten)(Player* self);
 	Event(*special_ability)(Player* self, Player* target);
-	void (*delete)(Player* self);
+	void (*destroy)(Player* self);
 } Player_vTable;
 
 #endif

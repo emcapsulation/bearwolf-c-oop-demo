@@ -64,10 +64,8 @@ static void Activist_dtor(Player* self)
 
 static const Player_vTable activist_vTable = {    
     .show_summary = Activist_show_properties,
-    .output_properties = Default_output_properties,
-    .gets_bitten = Default_gets_bitten,
     .special_ability = Activist_special_ability,
-    .delete = Activist_dtor
+    .destroy = Activist_dtor
 };
 
 

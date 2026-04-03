@@ -29,10 +29,8 @@ void Clairvoyant_dtor(Player* self)
 
 static const Player_vTable clairvoyant_vTable = {
     .show_summary = Clairvoyant_show_summary,
-    .output_properties = Default_output_properties,
-    .gets_bitten = Default_gets_bitten,
     .special_ability = Clairvoyant_special_ability,
-    .delete = Clairvoyant_dtor
+    .destroy = Clairvoyant_dtor
 };
 
 

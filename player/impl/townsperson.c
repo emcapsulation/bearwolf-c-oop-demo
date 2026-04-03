@@ -23,10 +23,8 @@ void Townsperson_dtor(Player* self)
 
 static const Player_vTable townsperson_vTable = {
     .show_summary = Townsperson_show_summary,
-    .output_properties = Default_output_properties,
-    .gets_bitten = Default_gets_bitten,
     .special_ability = Default_special_ability,
-    .delete = Townsperson_dtor
+    .destroy = Townsperson_dtor
 };
 
 

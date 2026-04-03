@@ -1,5 +1,6 @@
 #include "game.h"
 #include "../player/player.h"
+#include "../player/impl/bear.h"
 #include "../player/impl/activist.h"
 #include "../player/impl/healer.h"
 #include "../util/util.h"
@@ -12,8 +13,7 @@
 /*
 * Private
 */
-typedef struct Game
-{
+struct Game {
 	int num_players;
 	int num_bears_left;
 	int num_townspeople_left;
@@ -23,7 +23,7 @@ typedef struct Game
 	int bites_this_round;
 	int player_healed_id;
 	Player** players;	
-} Game;
+};
 
 
 static int Game_get_winner(const Game *self) 
@@ -63,6 +63,21 @@ static void Game_do_player_special_ability(Game* self, Player *player)
 }
 
 
+static void Game_output_player(Player* cur_player, Player* output_player)
+{
+	if (!Player_is_alive(output_player))
+		return;
+
+	printf("*  Player %d  ", output_player->player_id);
+
+	if (output_player->player_id == cur_player->player_id)
+		printf("[you]  ");
+
+	if (cur_player->role == BEAR)
+		Bear_output_player(output_player);
+}
+
+
 static void Game_do_player_round(Game *self, Player *player)
 {	
 	player->vTable->show_summary(player);
@@ -71,7 +86,7 @@ static void Game_do_player_round(Game *self, Player *player)
 	{
 		printf("\nPLAYERS:\n");
 		for (int pid = 0; pid < self->num_players; pid++)
-			player->vTable->output_properties(player, self->players[pid]);
+			Game_output_player(player, self->players[pid]);
 
 		Game_do_player_special_ability(self, player);
 	}
@@ -309,7 +324,7 @@ void Game_dtor(Game* self)
 	for (int i = 0; i < self->num_players; i++)
 	{
 		Player* player = self->players[i];
-		player->vTable->delete(player);
+		player->vTable->destroy(player);
 	}
 	free(self->players);
 	free(self);
