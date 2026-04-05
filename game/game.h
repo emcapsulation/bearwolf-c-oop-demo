@@ -4,11 +4,11 @@
 #define NUM_BEARS 2
 
 /*
-* Encapsulation: Game is an opaque pointer.
+* Encapsulation: Game is an opaque type.
 */
 typedef struct Game Game;
 
-Game *Game_ctor(const int num_players);
+Game* Game_ctor(const int num_players);
 void Game_loop(Game* self);
 void Game_dtor(Game* self);
 

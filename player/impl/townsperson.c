@@ -8,13 +8,13 @@
 /*
 * vTable Methods
 */
-static void Townsperson_show_summary(const Player* player)
+static void Townsperson_show_summary(const Player* self)
 {
-    Default_show_summary(player);
+    Default_show_summary(self);
     printf("\nYou have no special ability. Go back to sleep.\n");
 }
 
-void Townsperson_dtor(Player* self)
+static void Townsperson_dtor(Player* self)
 {
     Townsperson* townsperson = (Townsperson*)self;
     free(townsperson->super.protected);
@@ -31,11 +31,12 @@ static const Player_vTable townsperson_vTable = {
 /*
 * Public
 */
-Townsperson* Townsperson_ctor(const int player_id) {
+Townsperson* Townsperson_ctor(const int player_id) 
+{
     Townsperson* townsperson = malloc(sizeof(Townsperson));
     if (!townsperson) exit(EXIT_FAILURE);
 
-    super(&townsperson->super, &townsperson_vTable, player_id, TOWNSPERSON);
+    super((Player*)townsperson, &townsperson_vTable, player_id, TOWNSPERSON);
 
     return townsperson;
 }

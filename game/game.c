@@ -1,7 +1,7 @@
 #include "game.h"
 #include "../player/player.h"
-#include "../player/impl/bear.h"
 #include "../player/impl/activist.h"
+#include "../player/impl/bear.h"
 #include "../player/impl/healer.h"
 #include "../util/util.h"
 
@@ -32,21 +32,61 @@ static int Game_get_winner(const Game *self)
 		return 1;	
 	if (self->num_bears_left == 0)
 		return 2;
-
 	return 0;
+}
+
+
+// Static keyword for internal linkage
+static void Game_init_round_properties(Game* self)
+{
+	for (int i = 0; i < NUM_BEARS; i++)
+		self->player_bitten_ids[i] = -1;
+	self->bites_this_round = 0;
+	self->player_healed_id = -1;
+}
+
+
+static void Game_construct_players(Player** players, const int num_players)
+{
+	Role* all_roles = malloc(sizeof(Role) * num_players);
+	if (!all_roles) exit(EXIT_FAILURE);
+
+	for (int pid = 0; pid < num_players; pid++)
+		all_roles[pid] = TOWNSPERSON;
+
+	Role role_list[5] = { BEAR, BEAR, ACTIVIST, CLAIRVOYANT, HEALER };
+	memcpy(all_roles, role_list, sizeof(role_list));
+
+	Util_shuffle_ints((int*)all_roles, num_players);
+
+	for (int pid = 0; pid < num_players; pid++)
+		players[pid] = Player_factory(pid + 1, all_roles[pid]);
+
+	free(all_roles);
+}
+
+
+static Player** Game_init_game_players(const int num_players)
+{
+	Player** players = malloc(num_players * sizeof(Player*));
+	if (!players) exit(EXIT_FAILURE);
+
+	Game_construct_players(players, num_players);
+
+	return players;
 }
 
 
 static void Game_handle_event(Game* self, Event event)
 {
 	if (event.action == BITE)
-		self->player_bitten_ids[self->bites_this_round++] = event.player_id;
+		self->player_bitten_ids[self->bites_this_round++] = event.target_player_id;
 	else if (event.action == HEAL)
-		self->player_healed_id = event.player_id;
+		self->player_healed_id = event.target_player_id;
 }
 
 
-static void Game_do_player_special_ability(Game* self, Player *player)
+static void Game_do_player_special_ability(Game* self, Player* cur_player)
 {
 	int input;
 	Event event;
@@ -56,8 +96,10 @@ static void Game_do_player_special_ability(Game* self, Player *player)
 			1, self->num_players, 
 			"\n\nEnter the target Player ID: ");
 
-		event = player->vTable->special_ability(player, self->players[input - 1]);
-	} while (event.player_id == -1);
+		event = cur_player->vTable->special_ability(
+			cur_player, self->players[input - 1]);
+
+	} while (event.target_player_id == -1);
 
 	Game_handle_event(self, event);
 }
@@ -78,17 +120,17 @@ static void Game_output_player(Player* cur_player, Player* output_player)
 }
 
 
-static void Game_do_player_round(Game *self, Player *player)
+static void Game_do_player_turn(Game* self, Player* cur_player)
 {	
-	player->vTable->show_summary(player);
+	cur_player->vTable->show_summary(cur_player);
 
-	if (player->role != TOWNSPERSON)
+	if (cur_player->role != TOWNSPERSON)
 	{
 		printf("\nPLAYERS:\n");
 		for (int pid = 0; pid < self->num_players; pid++)
-			Game_output_player(player, self->players[pid]);
+			Game_output_player(cur_player, self->players[pid]);
 
-		Game_do_player_special_ability(self, player);
+		Game_do_player_special_ability(self, cur_player);
 	}
 
 	printf("\nPress ENTER to clear the screen.\n");
@@ -112,7 +154,7 @@ static void Game_do_night_round(Game* self)
 
 		printf("\n\nPLAYER %d\nPress ENTER when ready. ", cur_player->player_id);
 		Util_press_enter_to_continue();
-		Game_do_player_round(self, cur_player);
+		Game_do_player_turn(self, cur_player);
 	}
 }
 
@@ -138,28 +180,20 @@ static void Game_reveal_night_results(Game* self)
 
 	int bitten_index = self->num_bears_left == 2 ? rand() % NUM_BEARS : 0;
 	int bitten_id = self->player_bitten_ids[bitten_index];
+
 	if (bitten_id == self->player_healed_id)
 	{
 		printf("\nNo one died last night.\n");
 	}
 	else
 	{
-		printf("\nPlayer %d died last night.\n", bitten_id);
+		printf("\nPLAYER %d died last night.\n", bitten_id);
 
 		Player* bitten_player = self->players[bitten_id-1];
-		printf("Player %d was a %s.\n", bitten_player->player_id, Player_role_to_string(bitten_player->role));
+		printf("PLAYER %d was a %s.\n", bitten_player->player_id, Player_role_to_string(bitten_player->role));
 
 		Game_eliminate_player(self, bitten_player);
 	}
-}
-
-
-static void Game_init_round_properties(Game* self)
-{
-	for (int i = 0; i < NUM_BEARS; i++)
-		self->player_bitten_ids[i] = -1;
-	self->bites_this_round = 0;
-	self->player_healed_id = -1;
 }
 
 
@@ -167,13 +201,11 @@ static void Game_reset(Game* self)
 {
 	Game_init_round_properties(self);
 	for (int i = 0; i < self->num_players; i++)
-	{
 		Player_reset(self->players[i]);
-	}
 }
 
 
-static int Game_show_vote_prompt(Game *self, Player* cur_player, int *votes)
+static int Game_show_vote_prompt(Game* self, Player* cur_player, int* votes)
 {
 	if (!Player_is_alive(cur_player))
 		return 0;
@@ -188,8 +220,10 @@ static int Game_show_vote_prompt(Game *self, Player* cur_player, int *votes)
 	}
 
 	for (int i = 0; i < self->num_players; i++)
+	{
 		if (Player_is_alive(self->players[i]))
 			printf("Player %d [%d]  ", i + 1, votes[i]);
+	}
 	printf("\n");
 
 	return 1;
@@ -198,11 +232,12 @@ static int Game_show_vote_prompt(Game *self, Player* cur_player, int *votes)
 
 static void Game_do_vote_round(Game* self)
 {
-	int* votes = calloc(self->num_players, sizeof(int));
-	int max_votes[2] = { -1, -1 };
-
 	printf("\n\n******** VOTING ********\n");
 	printf("Time to vote out who you think is the bear.\n");
+
+	int* votes = calloc(self->num_players, sizeof(int));
+	// Number of votes, Player ID
+	int max_votes[2] = { -1, -1 };
 
 	for (int pid = 0; pid < self->num_players; pid++)
 	{
@@ -239,40 +274,6 @@ static void Game_do_vote_round(Game* self)
 
 	free(votes);
 	Game_reset(self);
-}
-
-
-static Player** Game_create_player_list(Player** players, const int num_players)
-{
-	Role role_list[5] = {BEAR, BEAR, ACTIVIST, CLAIRVOYANT, HEALER};
-	Role* all_roles = malloc(sizeof(Role) * num_players);
-	if (!all_roles) exit(EXIT_FAILURE);
-
-	int rid = 0;
-	for (int pid = 0; pid < num_players; pid++)
-	{
-		all_roles[pid] = rid < 5 ? role_list[rid] : TOWNSPERSON;
-		rid++;
-	}
-
-	Util_shuffle_ints((int *)all_roles, num_players);
-
-	for (int pid = 0; pid < num_players; pid++)
-		players[pid] = Player_factory(pid + 1, all_roles[pid]);
-
-	free(all_roles);
-	return players;
-}
-
-
-static Player** Game_init_game_players(const int num_players)
-{
-	Player** players = malloc(num_players * sizeof(Player*));
-	if (!players) exit(EXIT_FAILURE);
-
-	players = Game_create_player_list(players, num_players);
-
-	return players;
 }
 
 

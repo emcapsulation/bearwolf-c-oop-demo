@@ -16,8 +16,7 @@ typedef struct Player_vTable Player_vTable;
 typedef struct Player_protected Player_protected;
 
 
-typedef struct Player 
-{
+typedef struct Player {
 	const Player_vTable* vTable;
 	int player_id;
 	Role role;
@@ -34,7 +33,7 @@ typedef enum Action {
 } Action;
 
 typedef struct Event {
-	int player_id;
+	int target_player_id;
 	Action action;
 } Event;
 
@@ -49,9 +48,9 @@ void Player_reset(Player* self);
 int Player_is_alive(const Player* self);
 void Player_eliminate(Player* self);
 int Player_can_vote(const Player* self);
-void Player_ban_vote(Player* self);
+int Player_ban_vote(Player* self);
 int Player_is_bitten(const Player* self);
-Event Player_gets_bitten(Player* self);
+int Player_gets_bitten(Player* self);
 
 // Does not act on a Player instance (static method)
 const char* Player_role_to_string(Role role);
@@ -60,8 +59,7 @@ const char* Player_role_to_string(Role role);
 /*
 * vTable Public Methods
 */
-typedef struct Player_vTable
-{
+typedef struct Player_vTable {
 	void (*show_summary)(const Player* self);
 	Event(*special_ability)(Player* self, Player* target);
 	void (*destroy)(Player* self);

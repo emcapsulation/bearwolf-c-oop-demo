@@ -5,7 +5,6 @@
 #include "impl/clairvoyant.h"
 #include "impl/healer.h"
 #include "impl/townsperson.h"
-#include "../game/game.h"
 #include "../util/util.h"
 
 #include <stdio.h>
@@ -27,11 +26,6 @@ static Player_protected* Player_protected_ctor()
 
     return protected;
 }
-
-const Event DEFAULT_EVENT = {
-    .player_id = -1,
-    .action = NO_ACTION
-};
 
 
 /*
@@ -57,28 +51,23 @@ void Default_show_summary(const Player* self)
 
 Event Default_special_ability(Player* self, Player* target)
 {
-    return (Event){ .player_id = -1, .action = NO_ACTION };
+    return DEFAULT_EVENT;
 }
 
 
 /*
 * Public
 */
-Player *Player_factory(const int player_id, const Role role)
+Player* Player_factory(const int player_id, const Role role)
 {
-    if (role == BEAR)
-        return (Player*)Bear_ctor(player_id);
-    else if (role == ACTIVIST)
-        return (Player*)Activist_ctor(player_id);
-    else if (role == CLAIRVOYANT)
-        return (Player*)Clairvoyant_ctor(player_id);
-    else if (role == HEALER)
-        return (Player*)Healer_ctor(player_id);
-    else if (role == TOWNSPERSON)
-        return (Player*)Townsperson_ctor(player_id);
-    else
-        printf("\nInvalid role.\n");
-    return NULL;
+    switch (role) {
+    case BEAR: return (Player*)Bear_ctor(player_id);
+    case ACTIVIST: return (Player*)Activist_ctor(player_id);
+    case CLAIRVOYANT: return (Player*)Clairvoyant_ctor(player_id);
+    case HEALER: return (Player*)Healer_ctor(player_id);
+    case TOWNSPERSON: return (Player*)Townsperson_ctor(player_id);
+    default: return NULL;
+    }
 }
 
 void Player_reset(Player* self)
@@ -102,9 +91,16 @@ int Player_can_vote(const Player* self)
     return self->protected->can_vote;
 }
 
-void Player_ban_vote(Player* self)
+int Player_ban_vote(Player* self)
 {
+    if (!self->protected->is_alive)
+    {
+        printf("PLAYER %d cannot be banned because they have died.", self->player_id);
+        return 0;
+    }
+
     self->protected->can_vote = 0;
+    return 1;
 }
 
 int Player_is_bitten(const Player* self)
@@ -112,22 +108,21 @@ int Player_is_bitten(const Player* self)
     return self->protected->is_bitten;
 }
 
-Event Player_gets_bitten(Player* self)
+int Player_gets_bitten(Player* self)
 {
     if (!self->protected->is_alive)
     {
         printf("PLAYER %d cannot be bitten because they have died.", self->player_id);
-        return DEFAULT_EVENT;
+        return 0;
     }
     else if (self->role == BEAR)
     {
         printf("PLAYER %d cannot be bitten because they are a bear.", self->player_id);
-        return DEFAULT_EVENT;
+        return 0;
     }
 
-    printf("PLAYER %d has been bitten.\n", self->player_id);
     self->protected->is_bitten = 1;
-    return (Event) { .player_id = self->player_id, .action = BITE };
+    return 1;
 }
 
 static const char* ROLE_NAMES[ROLE_COUNT] = {
@@ -142,3 +137,8 @@ const char* Player_role_to_string(Role role)
 {
     return ROLE_NAMES[role];
 }
+
+const Event DEFAULT_EVENT = {
+    .target_player_id = -1,
+    .action = NO_ACTION
+};

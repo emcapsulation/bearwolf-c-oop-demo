@@ -9,10 +9,10 @@
 /*
 * Private
 */
-typedef struct Activist_private {
+struct Activist_private {
     int last_banned;
     int voted_twice;
-} Activist_private;
+};
 
 static Activist_private* Activist_private_ctor()
 {
@@ -21,6 +21,7 @@ static Activist_private* Activist_private_ctor()
 
     private->last_banned = -1;
     private->voted_twice = 0;
+
     return private;
 }
 
@@ -28,7 +29,7 @@ static Activist_private* Activist_private_ctor()
 /*
 * vTable Methods
 */
-static void Activist_show_properties(const Player* self)
+static void Activist_show_summary(const Player* self)
 {
     Default_show_summary(self);
     printf("\nYou can select one player to stop them voting in the day.\n");
@@ -36,22 +37,19 @@ static void Activist_show_properties(const Player* self)
 
 static Event Activist_special_ability(Player* self, Player* target)
 {
-    if (!Player_is_alive(target))
-    {
-        printf("You cannot ban Player %d because they have died.", target->player_id);
-        return DEFAULT_EVENT;
-    }
-    else if (((Activist*)self)->private->last_banned == target->player_id)
+    if (((Activist*)self)->private->last_banned == target->player_id)
     {
         printf("You cannot stop the same person voting two nights in a row.");
         return DEFAULT_EVENT;
     }
 
-    printf("Player %d cannot vote tomorrow.\n", target->player_id);
-    Player_ban_vote(target);
-    ((Activist*)self)->private->last_banned = target->player_id;
-
-    return (Event){ .player_id = target->player_id, .action = BAN_VOTE };
+    if (Player_ban_vote(target))
+    {
+        printf("PLAYER %d cannot vote tomorrow.\n", target->player_id);
+        ((Activist*)self)->private->last_banned = target->player_id;
+        return (Event) { .target_player_id = target->player_id, .action = BAN_VOTE };
+    }
+    return DEFAULT_EVENT;
 }
 
 static void Activist_dtor(Player* self)
@@ -63,7 +61,7 @@ static void Activist_dtor(Player* self)
 }
 
 static const Player_vTable activist_vTable = {    
-    .show_summary = Activist_show_properties,
+    .show_summary = Activist_show_summary,
     .special_ability = Activist_special_ability,
     .destroy = Activist_dtor
 };
@@ -72,11 +70,12 @@ static const Player_vTable activist_vTable = {
 /*
 * Public
 */
-Activist* Activist_ctor(const int player_id) {
+Activist* Activist_ctor(const int player_id) 
+{
     Activist* activist = malloc(sizeof(Activist));
     if (!activist) exit(EXIT_FAILURE);
 
-    super(&activist->super, &activist_vTable, player_id, ACTIVIST);
+    super((Player*)activist, &activist_vTable, player_id, ACTIVIST);
     activist->private = Activist_private_ctor();    
 
     return activist;

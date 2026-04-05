@@ -3,24 +3,28 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 
 /*
 * vTable Methods
 */
-static void Bear_show_summary(const Player* player)
+static void Bear_show_summary(const Player* self)
 {
-    Default_show_summary(player);
+    Default_show_summary(self);
     printf("\nYou can select one player to bite them.\n");
 }
 
 static Event Bear_special_ability(Player* self, Player* target)
-{    
-    return Player_gets_bitten(target);
+{
+    if (Player_gets_bitten(target))
+    {
+        printf("PLAYER %d has been bitten.\n", target->player_id);
+        return (Event) { .target_player_id = target->player_id, .action = BITE };
+    }
+    return DEFAULT_EVENT;
 }
 
-void Bear_dtor(Player* self)
+static void Bear_dtor(Player* self)
 {
     Bear* bear = (Bear*)self;
     free(bear->super.protected);
@@ -42,10 +46,11 @@ Bear* Bear_ctor(const int player_id)
     Bear* bear = malloc(sizeof(Bear));
     if (!bear) exit(EXIT_FAILURE);
 
-    super(&bear->super, &bear_vTable, player_id, BEAR);
+    super((Player*)bear, &bear_vTable, player_id, BEAR);
 
     return bear;
 }
+
 
 void Bear_output_player(const Player* output_player)
 {

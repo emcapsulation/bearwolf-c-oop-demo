@@ -10,7 +10,7 @@ typedef struct Activist {
 	Activist_private* private;
 } Activist;
 
-Activist* Activist_ctor(const int player_type_id);
+Activist* Activist_ctor(const int player_id);
 int Activist_attempt_second_vote(Activist* self);
 
 #endif

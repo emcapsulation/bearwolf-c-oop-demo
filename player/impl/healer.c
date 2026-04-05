@@ -9,9 +9,9 @@
 /*
 * Private
 */
-typedef struct Healer_private {
+struct Healer_private {
     int last_healed;
-} Healer_private;
+};
 
 static Healer_private* Healer_private_ctor() 
 {
@@ -19,6 +19,7 @@ static Healer_private* Healer_private_ctor()
     if (!private) exit(EXIT_FAILURE);
 
     private->last_healed = -1;
+
     return private;
 }
 
@@ -34,21 +35,22 @@ static void Healer_show_summary(const Player* self)
 
 static Event Healer_special_ability(Player* self, Player* target)
 {
+    if (((Healer*)self)->private->last_healed == target->player_id)
+    {
+        printf("You cannot heal the same person two nights in a row.");
+        return DEFAULT_EVENT;
+    }
+
     if (!Player_is_alive(target))
     {
-        printf("You cannot heal Player %d because they have died.", target->player_id);
-        return (Event) { .player_id = -1, .action = NO_ACTION };
-    }
-    else if (target->player_id == ((Healer*)self)->private->last_healed)
-    {
-        printf("You cannot heal the same player two nights in a row.\n");
-        return (Event){ .player_id = -1, .action = NO_ACTION };
+        printf("You cannot heal PLAYER %d because they have died.", target->player_id);
+        return DEFAULT_EVENT;
     }
 
-    printf("Player %d is protected for the night.\n", target->player_id);
+    printf("PLAYER %d is protected for the night.\n", target->player_id);
     ((Healer*)self)->private->last_healed = target->player_id;
 
-    return (Event){ .player_id = target->player_id, .action = HEAL };
+    return (Event) { .target_player_id = target->player_id, .action = HEAL };
 }
 
 static void Healer_dtor(Player* self)
@@ -74,7 +76,7 @@ Healer* Healer_ctor(const int player_id)
     Healer* healer = malloc(sizeof(Healer));
     if (!healer) exit(EXIT_FAILURE);
 
-    super(&healer->super, &healer_vTable, player_id, HEALER);
+    super((Player*)healer, &healer_vTable, player_id, HEALER);
     healer->private = Healer_private_ctor();    
 
     return healer;
