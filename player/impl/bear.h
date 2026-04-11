@@ -1,7 +1,7 @@
 #ifndef BEAR_H
 #define BEAR_H
 
-#include "../player_protected.h"
+#include "../player.h"
 
 typedef struct Bear {
 	Player super;

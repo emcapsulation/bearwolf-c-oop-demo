@@ -1,7 +1,7 @@
 #ifndef CLAIRVOYANT_H
 #define CLAIRVOYANT_H
 
-#include "../player_protected.h"
+#include "../player.h"
 
 typedef struct Clairvoyant {
 	Player super;

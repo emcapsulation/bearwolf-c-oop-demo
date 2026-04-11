@@ -1,7 +1,7 @@
 #ifndef ACTIVIST_H
 #define ACTIVIST_H
 
-#include "../player_protected.h"
+#include "../player.h"
 
 typedef struct Activist_private Activist_private;
 

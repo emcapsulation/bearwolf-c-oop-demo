@@ -11,6 +11,7 @@ struct Player_protected {
 };
 
 void super(Player* self, const Player_vTable* vTable, const int player_id, const Role role);
+void Player_destroy(Player* self);
 
 
 /*

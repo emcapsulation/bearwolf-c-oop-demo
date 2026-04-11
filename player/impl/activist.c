@@ -55,7 +55,7 @@ static Event Activist_special_ability(Player* self, Player* target)
 static void Activist_dtor(Player* self)
 {
     Activist* activist = (Activist*)self;
-    free(activist->super.protected);
+    Player_destroy(&activist->super);
     free(activist->private);    
     free(activist);
 }

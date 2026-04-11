@@ -39,6 +39,11 @@ void super(Player* self, const Player_vTable* vTable, const int player_id, const
     self->protected = Player_protected_ctor();
 }
 
+void Player_destroy(Player* self)
+{
+    free(self->protected);
+}
+
 
 /*
 * Default vTable Methods

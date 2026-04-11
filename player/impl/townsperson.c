@@ -17,7 +17,7 @@ static void Townsperson_show_summary(const Player* self)
 static void Townsperson_dtor(Player* self)
 {
     Townsperson* townsperson = (Townsperson*)self;
-    free(townsperson->super.protected);
+    Player_destroy(&townsperson->super);
     free(townsperson);
 }
 

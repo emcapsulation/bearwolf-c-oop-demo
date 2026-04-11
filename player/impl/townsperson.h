@@ -1,7 +1,7 @@
 #ifndef TOWNSPERSON_H
 #define TOWNSPERSON_H
 
-#include "../player_protected.h"
+#include "../player.h"
 
 typedef struct Townsperson {
 	Player super;

@@ -27,7 +27,7 @@ static Event Bear_special_ability(Player* self, Player* target)
 static void Bear_dtor(Player* self)
 {
     Bear* bear = (Bear*)self;
-    free(bear->super.protected);
+    Player_destroy(&bear->super);
     free(bear);
 }
 

@@ -23,7 +23,7 @@ static Event Clairvoyant_special_ability(Player* self, Player* target)
 static void Clairvoyant_dtor(Player* self)
 {
     Clairvoyant* clairvoyant = (Clairvoyant*)self;
-    free(clairvoyant->super.protected);
+    Player_destroy(&clairvoyant->super);
     free(clairvoyant);
 }
 

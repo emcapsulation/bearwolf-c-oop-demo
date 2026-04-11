@@ -1,7 +1,7 @@
 #ifndef HEALER_H
 #define HEALER_H
 
-#include "../player_protected.h"
+#include "../player.h"
 
 typedef struct Healer_private Healer_private;
 

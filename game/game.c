@@ -57,7 +57,7 @@ static void Game_construct_players(Player** players, const int num_players)
 	Role role_list[5] = { BEAR, BEAR, ACTIVIST, CLAIRVOYANT, HEALER };
 	memcpy(all_roles, role_list, sizeof(role_list));
 
-	Util_shuffle_ints((int*)all_roles, num_players);
+	Util_shuffle_roles(all_roles, num_players);
 
 	for (int pid = 0; pid < num_players; pid++)
 		players[pid] = Player_factory(pid + 1, all_roles[pid]);

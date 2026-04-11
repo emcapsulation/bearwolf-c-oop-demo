@@ -56,7 +56,7 @@ static Event Healer_special_ability(Player* self, Player* target)
 static void Healer_dtor(Player* self)
 {
     Healer* healer = (Healer*)self;
-    free(healer->super.protected);
+    Player_destroy(&healer->super);
     free(healer->private);    
     free(healer);
 }
