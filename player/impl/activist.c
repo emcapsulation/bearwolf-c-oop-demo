@@ -74,7 +74,7 @@ Activist* Activist_ctor(const int player_id)
 {
     Activist* activist = malloc(sizeof(Activist));
     if (!activist) exit(EXIT_FAILURE);
-
+    
     super((Player*)activist, &activist_vTable, player_id, ACTIVIST);
     activist->private = Activist_private_ctor();    
 
@@ -90,7 +90,7 @@ int Activist_attempt_second_vote(Activist* self)
     }        
 
     printf("\nThe activist has a 1 in 2 chance of getting a second vote.\n");
-    printf("PLAYER %d: Press ENTER to try and get a second vote.\n", self->super.player_id);
+    printf("PLAYER %d: Press ENTER to try and get a second vote.\n", ((Player*)self)->player_id);
     Util_press_enter_to_continue();
 
     if (rand() % 2 == 0)

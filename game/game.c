@@ -92,12 +92,11 @@ static void Game_do_player_special_ability(Game* self, Player* cur_player)
 	Event event;
 	do
 	{
-		input = Util_get_valid_int_input(
-			1, self->num_players, 
+		input = Util_get_valid_int_input(1, self->num_players, 
 			"\n\nEnter the target Player ID: ");
 
-		event = cur_player->vTable->special_ability(
-			cur_player, self->players[input - 1]);
+		Player* target_player = self->players[input - 1];
+		event = cur_player->vTable->special_ability(cur_player, target_player);
 
 	} while (event.target_player_id == -1);
 
@@ -152,7 +151,7 @@ static void Game_do_night_round(Game* self)
 		if (!Player_is_alive(cur_player))
 			continue;
 
-		printf("\n\nPLAYER %d\nPress ENTER when ready. ", cur_player->player_id);
+		printf("\n\nPLAYER %d\nPress ENTER when ready.", cur_player->player_id);
 		Util_press_enter_to_continue();
 		Game_do_player_turn(self, cur_player);
 	}
