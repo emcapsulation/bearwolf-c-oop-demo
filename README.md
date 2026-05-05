@@ -1,9 +1,12 @@
 # "You can't do object-oriented programming in C"
-This repo is intended to be a demonstration of how to emulate object-oriented 
+This repo is intended to be a exploration of some ways to emulate object-oriented 
 programming principles in C. 
 
 The full tutorial and explanations can be found in my 
 [YouTube Video](https://www.youtube.com/watch?v=1VPx7Tz_d6A).
+
+Note that in the video, I also evaluate the approaches and discuss some of their 
+limitations. This code is provided "as is" for educational purposes! :)
 
 # Running the Code
 Nothing fancy here.
