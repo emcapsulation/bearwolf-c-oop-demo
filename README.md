@@ -259,4 +259,4 @@ Bear* Bear_ctor(const int player_id)
 ```
 
 # Thank You
-I hope you enjoy the video and code, and that these tips were useful for you!
+I hope you enjoy the video and code, and that these tips were useful for you! :)
